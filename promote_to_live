@@ -1,0 +1,5 @@
+#!/bin/bash
+echo About to promote to live.
+cd $1
+git push origin master
+echo Promoted, all done.
