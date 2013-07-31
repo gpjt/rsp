@@ -1,6 +1,11 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import os
+import subprocess
 from threading import Thread
 import unittest
+
+
+RSP_BINARY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "rsp"))
 
 
 class MockServerRequestHandler(BaseHTTPRequestHandler):
@@ -17,8 +22,12 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
     def test_simple_proxying(self):
         httpd = HTTPServer(('127.0.0.1', 8888), MockServerRequestHandler)
         server_thread = Thread(target=httpd.serve_forever)
+        server_thread.daemon = True
         server_thread.start()
 
-        # Do the test here.
+        process = subprocess.Popen([RSP_BINARY, "127.0.0.1", "8000", "127.0.0.1:8888"])
+        print "Wibble"
+
+        process.kill()
 
         httpd.shutdown()
