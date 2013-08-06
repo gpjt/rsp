@@ -1,5 +1,6 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os
+import requests
 import subprocess
 from threading import Thread
 import unittest
@@ -25,9 +26,12 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
         server_thread.daemon = True
         server_thread.start()
 
-        process = subprocess.Popen([RSP_BINARY, "127.0.0.1", "8000", "127.0.0.1:8888"])
-        print "Wibble"
+        process = subprocess.Popen([RSP_BINARY, "8000", "127.0.0.1:8888"])
+        try:
+            response = requests.get("http://127.0.0.1:8000")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.text, "Hello from the mock server\n")
+        finally:
+            process.kill()
 
-        process.kill()
-
-        httpd.shutdown()
+            httpd.shutdown()
