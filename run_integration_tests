@@ -1,4 +1,6 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR/src
+make & make install
 cd $DIR/fts
 python -m unittest discover
