@@ -1,3 +1,4 @@
 *.pyc
+rsp
 src/*.o
 src/rsp

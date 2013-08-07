@@ -4,6 +4,9 @@ OBJ_FILES := $(addprefix ./,$(C_FILES:.c=.o))
 
 all: rsp
 
+install: rsp
+	cp rsp ..
+
 clean:
 	rm $(OBJ_FILES)
 	rm rsp
