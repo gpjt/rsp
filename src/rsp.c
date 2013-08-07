@@ -6,10 +6,21 @@
 #include <netinet/in.h>
 
 #define MAX_LISTEN_BACKLOG 1
+#define MAX_REQUEST_HEADER_SIZE 4096
 
 
 void handle_client_connection(int fd) {
-    printf("Handling client connection on %d\n", fd);
+    int bytes_read;
+    char request_header[MAX_REQUEST_HEADER_SIZE];
+
+    bytes_read = read(fd, request_header, MAX_REQUEST_HEADER_SIZE);
+    if (bytes_read < 0) {
+        perror("Error reading from client");
+        exit(1);
+    }
+
+    printf("Read %d bytes:\n%s\n", bytes_read, request_header);
+    
 }
 
 
