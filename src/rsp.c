@@ -6,31 +6,9 @@
 #include <netinet/in.h>
 
 #define MAX_LISTEN_BACKLOG 1
-#define MAX_REQUEST_HEADER_SIZE 4096
-#define HOST_HEADER "\nHost: "
 
 
 void handle_client_connection(int fd) {
-    int bytes_read;
-    char request_header[MAX_REQUEST_HEADER_SIZE];
-    char *host_header_start;
-    char *host_header_end;
-    int host_header_len;
-    char host_header[MAX_REQUEST_HEADER_SIZE];
-
-    bytes_read = read(fd, request_header, MAX_REQUEST_HEADER_SIZE);
-    if (bytes_read < 0) {
-        perror("Error reading from client");
-        exit(1);
-    }
-
-    host_header_start = strstr(request_header, HOST_HEADER) + sizeof(HOST_HEADER) - 1;
-    host_header_end = strchr(host_header_start, '\n');
-    host_header_len = host_header_end - host_header_start;
-    strncpy(host_header, host_header_start, host_header_len);
-    host_header[host_header_len - 1] = 0;
-
-    printf("host header is '%s'\n", host_header);
 }
 
 
