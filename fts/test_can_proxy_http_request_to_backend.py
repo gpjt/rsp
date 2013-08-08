@@ -28,10 +28,9 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
 
         process = subprocess.Popen([RSP_BINARY, "8000", "127.0.0.1", "8888"])
         try:
-            pass
-            # response = requests.get("http://127.0.0.1:8000")
-            # self.assertEqual(response.status_code, 200)
-            # self.assertEqual(response.text, "Hello from the mock server\n")
+            response = requests.get("http://127.0.0.1:8000")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.text, "Hello from the mock server\n")
         finally:
             process.kill()
 
