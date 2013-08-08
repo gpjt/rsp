@@ -7,12 +7,15 @@
 #include <netdb.h>
 
 #define MAX_LISTEN_BACKLOG 1
+#define BUFFER_SIZE 4096
 
 
-void handle_client_connection(int fd, char *backend_addr, int backend_port) {
+void handle_client_connection(int client_socket_fd, char *backend_addr, int backend_port) {
     int backend_socket_fd;
     struct hostent *backend_server_host;
     struct sockaddr_in backend_server_addr;
+    char buffer[BUFFER_SIZE];
+    int bytes_read;
 
     backend_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (backend_socket_fd < 0) {
@@ -36,7 +39,12 @@ void handle_client_connection(int fd, char *backend_addr, int backend_port) {
         exit(1);
     }
 
-    printf("Connected.\n");
+    bytes_read = read(client_socket_fd, buffer, BUFFER_SIZE);
+    write(backend_socket_fd, buffer, bytes_read);
+
+    while (bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE)) {
+        write(client_socket_fd, buffer, bytes_read);
+    }
 }
 
 
