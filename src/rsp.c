@@ -8,21 +8,27 @@
 #define MAX_LISTEN_BACKLOG 1
 
 
-void handle_client_connection(int fd) {
+void handle_client_connection(int fd, char *backend_addr, int backend_port) {
 }
 
 
 int main(int argc, char *argv[]) {
+    int server_port;
     int server_socket_fd;
     int client_socket_fd;
     struct sockaddr_in server_socket_addr;
     struct sockaddr_in client_socket_addr;
     int client_socket_addr_size;
+    char *backend_addr;
+    int backend_port;
 
-    if (argc != 2) {
-        printf("Usage: %s <port>\n", argv[0]);
+    if (argc != 4) {
+        printf("Usage: %s <server_port> <backend_addr> <backend_port>\n", argv[0]);
         exit(1);
     }
+    server_port = atoi(argv[1]);
+    backend_addr = argv[2];
+    backend_port = atoi(argv[3]);
 
     server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_fd < 0) {
@@ -32,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     memset((char *) &server_socket_addr, 0, sizeof(server_socket_addr));
     server_socket_addr.sin_family = AF_INET;
-    server_socket_addr.sin_port = htons(atoi(argv[1]));
+    server_socket_addr.sin_port = htons(server_port);
     server_socket_addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(server_socket_fd, (struct sockaddr *) &server_socket_addr, sizeof(server_socket_addr)) < 0) {
@@ -49,5 +55,5 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    handle_client_connection(client_socket_fd);
+    handle_client_connection(client_socket_fd, backend_addr, backend_port);
 }

@@ -26,7 +26,7 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
         server_thread.daemon = True
         server_thread.start()
 
-        process = subprocess.Popen([RSP_BINARY, "8000", "127.0.0.1:8888"])
+        process = subprocess.Popen([RSP_BINARY, "8000", "127.0.0.1", "8888"])
         try:
             pass
             # response = requests.get("http://127.0.0.1:8000")
