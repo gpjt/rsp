@@ -1,5 +1,5 @@
 C_FILES := $(wildcard *.c)
-OBJ_FILES := $(addprefix ./,$(C_FILES:.c=.o))
+OBJ_FILES := $(patsubst %.c,%.o,$(C_FILES))
 
 
 all: rsp
