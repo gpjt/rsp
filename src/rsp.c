@@ -80,7 +80,9 @@ int main(int argc, char *argv[]) {
     char *backend_port_str;
 
     if (argc != 4) {
-        printf("Usage: %s <server_port> <backend_addr> <backend_port>\n", argv[0]);
+        fprintf(stderr, 
+                "Usage: %s <server_port> <backend_addr> <backend_port>\n", 
+                argv[0]);
         exit(1);
     }
     server_port = atoi(argv[1]);
@@ -98,7 +100,10 @@ int main(int argc, char *argv[]) {
     server_socket_addr.sin_port = htons(server_port);
     server_socket_addr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(server_socket_fd, (struct sockaddr *) &server_socket_addr, sizeof(server_socket_addr)) < 0) {
+    if (bind(server_socket_fd, 
+             (struct sockaddr *) &server_socket_addr, 
+             sizeof(server_socket_addr)) < 0) 
+    {
         perror("Could not bind");
         exit(1);
     }
@@ -106,7 +111,9 @@ int main(int argc, char *argv[]) {
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
 
     client_socket_addr_size = sizeof(client_socket_addr);
-    client_socket_fd = accept(server_socket_fd, (struct sockaddr *) &client_socket_addr, &client_socket_addr_size);
+    client_socket_fd = accept(server_socket_fd, 
+                              (struct sockaddr *) &client_socket_addr, 
+                              &client_socket_addr_size);
     if (client_socket_fd < 0) {
         perror("Could not accept");
         exit(1);
