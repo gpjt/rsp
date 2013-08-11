@@ -70,14 +70,19 @@ void handle_client_connection(int client_socket_fd,
 
 
 int main(int argc, char *argv[]) {
-    int server_port;
-    int server_socket_fd;
-    int client_socket_fd;
-    struct sockaddr_in server_socket_addr;
-    struct sockaddr_in client_socket_addr;
-    int client_socket_addr_size;
+    char *server_port_str;
     char *backend_addr;
     char *backend_port_str;
+
+    struct addrinfo hints;
+    struct addrinfo *addrs;
+    struct addrinfo *addr_iter;
+
+    struct sockaddr_in client_socket_addr;
+    socklen_t client_socket_addr_size;
+
+    int server_socket_fd;
+    int client_socket_fd;
 
     if (argc != 4) {
         fprintf(stderr, 
@@ -85,28 +90,48 @@ int main(int argc, char *argv[]) {
                 argv[0]);
         exit(1);
     }
-    server_port = atoi(argv[1]);
+    server_port_str = argv[1];
     backend_addr = argv[2];
     backend_port_str = argv[3];
 
-    server_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket_fd < 0) {
-        perror("Could not open socket");
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_protocol = 0;
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+
+    if (getaddrinfo(NULL, server_port_str, &hints, &addrs) != 0) {
+        perror("Couldn't find local host details");
         exit(1);
     }
 
-    memset(&server_socket_addr, 0, sizeof(server_socket_addr));
-    server_socket_addr.sin_family = AF_INET;
-    server_socket_addr.sin_port = htons(server_port);
-    server_socket_addr.sin_addr.s_addr = INADDR_ANY;
+    for (addr_iter = addrs; addr_iter != NULL; addr_iter = addr_iter->ai_next) {
+        server_socket_fd = socket(addr_iter->ai_family,
+                                  addr_iter->ai_socktype,
+                                  addr_iter->ai_protocol);
+        if (server_socket_fd == -1) {
+            continue;
+        }
 
-    if (bind(server_socket_fd, 
-             (struct sockaddr *) &server_socket_addr, 
-             sizeof(server_socket_addr)) < 0) 
-    {
-        perror("Could not bind");
+        if (bind(server_socket_fd, 
+                 addr_iter->ai_addr, 
+                 addr_iter->ai_addrlen) == 0) 
+        {
+            break;
+        }
+
+        close(server_socket_fd);
+    }
+
+    if (addr_iter == NULL) {
+        fprintf(stderr, "Couldn't bind\n");
         exit(1);
     }
+
+    freeaddrinfo(addrs);
 
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
 
