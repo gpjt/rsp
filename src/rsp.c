@@ -18,6 +18,7 @@ void handle_client_connection(int client_socket_fd,
     struct addrinfo hints;
     struct addrinfo *addrs;
     struct addrinfo *addrs_iter;
+    int getaddrinfo_error;
     int backend_socket_fd;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -28,8 +29,9 @@ void handle_client_connection(int client_socket_fd,
     hints.ai_flags = 0;
     hints.ai_protocol = 0;
 
-    if (getaddrinfo(backend_host, backend_port_str, &hints, &addrs) != 0) {
-        perror("Couldn't find backend");
+    getaddrinfo_error = getaddrinfo(backend_host, backend_port_str, &hints, &addrs);
+    if (getaddrinfo_error != 0) {
+        fprintf(stderr, "Couldn't find backend: %s\n", gai_strerror(getaddrinfo_error));
         exit(1);
     }
 
@@ -77,6 +79,7 @@ int main(int argc, char *argv[]) {
     struct addrinfo hints;
     struct addrinfo *addrs;
     struct addrinfo *addr_iter;
+    int getaddrinfo_error;
 
     struct sockaddr_in client_socket_addr;
     socklen_t client_socket_addr_size;
@@ -103,8 +106,9 @@ int main(int argc, char *argv[]) {
     hints.ai_addr = NULL;
     hints.ai_next = NULL;
 
-    if (getaddrinfo(NULL, server_port_str, &hints, &addrs) != 0) {
-        perror("Couldn't find local host details");
+    getaddrinfo_error = getaddrinfo(NULL, server_port_str, &hints, &addrs);
+    if (getaddrinfo_error != 0) {
+        fprintf(stderr, "Couldn't find local host details: %s\n", gai_strerror(getaddrinfo_error));
         exit(1);
     }
 
