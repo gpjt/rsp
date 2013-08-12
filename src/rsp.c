@@ -19,7 +19,9 @@ void handle_client_connection(int client_socket_fd,
     struct addrinfo *addrs;
     struct addrinfo *addrs_iter;
     int getaddrinfo_error;
+
     int backend_socket_fd;
+
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
