@@ -81,9 +81,6 @@ int main(int argc, char *argv[]) {
     struct addrinfo *addr_iter;
     int getaddrinfo_error;
 
-    struct sockaddr_in client_socket_addr;
-    socklen_t client_socket_addr_size;
-
     int server_socket_fd;
     int client_socket_fd;
 
@@ -135,10 +132,7 @@ int main(int argc, char *argv[]) {
 
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
 
-    client_socket_addr_size = sizeof(client_socket_addr);
-    client_socket_fd = accept(server_socket_fd, 
-                              (struct sockaddr *) &client_socket_addr, 
-                              &client_socket_addr_size);
+    client_socket_fd = accept(server_socket_fd, NULL, NULL);
     if (client_socket_fd == -1) {
         perror("Could not accept");
         exit(1);
