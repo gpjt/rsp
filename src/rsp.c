@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
     client_socket_fd = accept(server_socket_fd, 
                               (struct sockaddr *) &client_socket_addr, 
                               &client_socket_addr_size);
-    if (client_socket_fd < 0) {
+    if (client_socket_fd == -1) {
         perror("Could not accept");
         exit(1);
     }
