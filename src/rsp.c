@@ -26,8 +26,6 @@ void handle_client_connection(int client_socket_fd,
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = 0;
-    hints.ai_protocol = 0;
 
     getaddrinfo_error = getaddrinfo(backend_host, backend_port_str, &hints, &addrs);
     if (getaddrinfo_error != 0) {
@@ -101,10 +99,6 @@ int main(int argc, char *argv[]) {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    hints.ai_protocol = 0;
-    hints.ai_canonname = NULL;
-    hints.ai_addr = NULL;
-    hints.ai_next = NULL;
 
     getaddrinfo_error = getaddrinfo(NULL, server_port_str, &hints, &addrs);
     if (getaddrinfo_error != 0) {
