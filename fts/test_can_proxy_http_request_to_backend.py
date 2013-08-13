@@ -21,13 +21,21 @@ class MockServerRequestHandler(BaseHTTPRequestHandler):
 class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
 
     def test_simple_proxying(self):
+        # We start up a backend
         httpd = HTTPServer(('127.0.0.1', 8888), MockServerRequestHandler)
         server_thread = Thread(target=httpd.serve_forever)
         server_thread.daemon = True
         server_thread.start()
 
+        # ...and an rsp option that proxies everything to it.
         process = subprocess.Popen([RSP_BINARY, "8000", "127.0.0.1", "8888"])
         try:
+            # Make a request and check it works.
+            response = requests.get("http://127.0.0.1:8000")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.text, "Hello from the mock server\n")
+
+            # Make a second request and check it works too.
             response = requests.get("http://127.0.0.1:8000")
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.text, "Hello from the mock server\n")
