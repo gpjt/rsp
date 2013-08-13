@@ -68,6 +68,8 @@ void handle_client_connection(int client_socket_fd,
     while (bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE)) {
         write(client_socket_fd, buffer, bytes_read);
     }
+
+    close(client_socket_fd);
 }
 
 
@@ -136,14 +138,17 @@ int main(int argc, char *argv[]) {
 
     freeaddrinfo(addrs);
 
-    listen(server_socket_fd, MAX_LISTEN_BACKLOG);
+    while (1) {
+        listen(server_socket_fd, MAX_LISTEN_BACKLOG);
 
-    client_socket_fd = accept(server_socket_fd, NULL, NULL);
-    if (client_socket_fd == -1) {
-        perror("Could not accept");
-        exit(1);
+        client_socket_fd = accept(server_socket_fd, NULL, NULL);
+        if (client_socket_fd == -1) {
+            perror("Could not accept");
+            exit(1);
+        }
+
+        handle_client_connection(client_socket_fd, backend_addr, backend_port_str);
     }
 
-    handle_client_connection(client_socket_fd, backend_addr, backend_port_str);
 }
 
