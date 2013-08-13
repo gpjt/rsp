@@ -84,6 +84,9 @@ int main(int argc, char *argv[]) {
     int server_socket_fd;
     int client_socket_fd;
 
+    int so_reuseaddr;
+
+
     if (argc != 4) {
         fprintf(stderr, 
                 "Usage: %s <server_port> <backend_addr> <backend_port>\n", 
@@ -112,6 +115,9 @@ int main(int argc, char *argv[]) {
         if (server_socket_fd == -1) {
             continue;
         }
+
+        so_reuseaddr = 1;
+        setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof(so_reuseaddr));
 
         if (bind(server_socket_fd, 
                  addr_iter->ai_addr, 
