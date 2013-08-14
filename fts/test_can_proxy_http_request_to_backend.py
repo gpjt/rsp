@@ -1,7 +1,7 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os
 import requests
-import subprocess
+import pexpect
 from threading import Thread
 import unittest
 
@@ -28,7 +28,8 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
         server_thread.start()
 
         # ...and an rsp option that proxies everything to it.
-        process = subprocess.Popen([RSP_BINARY, "8000", "127.0.0.1", "8888"])
+        server = pexpect.spawn(RSP_BINARY, ["8000", "127.0.0.1", "8888"])
+        server.expect("Started.  Listening on port 8000.")
         try:
             # Make a request and check it works.
             response = requests.get("http://127.0.0.1:8000")
@@ -40,6 +41,6 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.text, "Hello from the mock server\n")
         finally:
-            process.kill()
+            server.kill(9)
 
             httpd.shutdown()

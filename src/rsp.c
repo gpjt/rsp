@@ -138,6 +138,8 @@ int main(int argc, char *argv[]) {
 
     freeaddrinfo(addrs);
 
+    printf("Started.  Listening on port %s.\n", server_port_str);
+
     while (1) {
         listen(server_socket_fd, MAX_LISTEN_BACKLOG);
 
