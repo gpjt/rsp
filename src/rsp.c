@@ -5,6 +5,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define MAX_LISTEN_BACKLOG 1
 #define BUFFER_SIZE 4096
@@ -73,31 +75,15 @@ void handle_client_connection(int client_socket_fd,
 }
 
 
-int main(int argc, char *argv[]) {
-    char *server_port_str;
-    char *backend_addr;
-    char *backend_port_str;
+int create_and_bind(char *server_port_str) {
+    int server_socket_fd;
 
     struct addrinfo hints;
     struct addrinfo *addrs;
     struct addrinfo *addr_iter;
     int getaddrinfo_error;
 
-    int server_socket_fd;
-    int client_socket_fd;
-
     int so_reuseaddr;
-
-
-    if (argc != 4) {
-        fprintf(stderr, 
-                "Usage: %s <server_port> <backend_addr> <backend_port>\n", 
-                argv[0]);
-        exit(1);
-    }
-    server_port_str = argv[1];
-    backend_addr = argv[2];
-    backend_port_str = argv[3];
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -137,6 +123,49 @@ int main(int argc, char *argv[]) {
     }
 
     freeaddrinfo(addrs);
+
+    return server_socket_fd;
+}
+
+
+int make_socket_non_blocking(int socket_fd) {
+    int flags;
+    int fcntl_set_result;
+
+    flags = fcntl(socket_fd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("Couldn't get socket flags");
+        exit(1);
+    }
+
+    flags |= O_NONBLOCK;
+    if (fcntl(socket_fd, F_SETFL, flags) == -1) {
+        perror("Couldn't set socket flags");
+        exit(-1);
+    }
+}
+
+
+int main(int argc, char *argv[]) {
+    char *server_port_str;
+    char *backend_addr;
+    char *backend_port_str;
+
+    int server_socket_fd;
+    int client_socket_fd;
+
+    if (argc != 4) {
+        fprintf(stderr, 
+                "Usage: %s <server_port> <backend_addr> <backend_port>\n", 
+                argv[0]);
+        exit(1);
+    }
+    server_port_str = argv[1];
+    backend_addr = argv[2];
+    backend_port_str = argv[3];
+
+    server_socket_fd = create_and_bind(server_port_str);
+    // make_socket_non_blocking(server_socket_fd);
 
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
     printf("Started.  Listening on port %s.\n", server_port_str);
