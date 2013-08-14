@@ -1,20 +1,12 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os
 import requests
 import pexpect
-from threading import Thread
 import unittest
+
+from mock_backend import create_and_start_backend
 
 
 RSP_BINARY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "rsp"))
-
-
-class MockServerRequestHandler(BaseHTTPRequestHandler):
-
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write("Hello from the mock server\n")
 
 
 
@@ -22,10 +14,7 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
 
     def test_simple_proxying(self):
         # We start up a backend
-        httpd = HTTPServer(('127.0.0.1', 8888), MockServerRequestHandler)
-        server_thread = Thread(target=httpd.serve_forever)
-        server_thread.daemon = True
-        server_thread.start()
+        backend = create_and_start_backend(0)
 
         # ...and an rsp option that proxies everything to it.
         server = pexpect.spawn(RSP_BINARY, ["8000", "127.0.0.1", "8888"])
@@ -43,4 +32,4 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
         finally:
             server.kill(9)
 
-            httpd.shutdown()
+            backend.shutdown()
