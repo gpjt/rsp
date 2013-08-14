@@ -138,11 +138,10 @@ int main(int argc, char *argv[]) {
 
     freeaddrinfo(addrs);
 
+    listen(server_socket_fd, MAX_LISTEN_BACKLOG);
     printf("Started.  Listening on port %s.\n", server_port_str);
 
     while (1) {
-        listen(server_socket_fd, MAX_LISTEN_BACKLOG);
-
         client_socket_fd = accept(server_socket_fd, NULL, NULL);
         if (client_socket_fd == -1) {
             perror("Could not accept");
