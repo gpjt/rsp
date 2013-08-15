@@ -7,7 +7,10 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <sys/epoll.h>
 
+#define MAX_EPOLL_EVENTS 10
 #define MAX_LISTEN_BACKLOG 1
 #define BUFFER_SIZE 4096
 
@@ -151,8 +154,13 @@ int main(int argc, char *argv[]) {
     char *backend_addr;
     char *backend_port_str;
 
+    int epoll_fd;
     int server_socket_fd;
     int client_socket_fd;
+
+    struct epoll_event epoll_events[MAX_EPOLL_EVENTS];
+    struct epoll_event server_socket_event;
+
 
     if (argc != 4) {
         fprintf(stderr, 
@@ -165,19 +173,46 @@ int main(int argc, char *argv[]) {
     backend_port_str = argv[3];
 
     server_socket_fd = create_and_bind(server_port_str);
-    // make_socket_non_blocking(server_socket_fd);
+    make_socket_non_blocking(server_socket_fd);
 
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
     printf("Started.  Listening on port %s.\n", server_port_str);
 
+    epoll_fd = epoll_create1(0);
+    if (epoll_fd == -1) {
+        perror("Couldn't create epoll FD");
+        exit(1);
+    }
+
+    server_socket_event.data.fd = server_socket_fd;
+    server_socket_event.events = EPOLLIN | EPOLLET;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &server_socket_event) == -1) {
+        perror("Couldn't register server socket with epoll");
+        exit(-1);
+    }
+
     while (1) {
-        client_socket_fd = accept(server_socket_fd, NULL, NULL);
-        if (client_socket_fd == -1) {
-            perror("Could not accept");
-            exit(1);
+        int ii;
+        int num_events;
+
+        num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
+        for (ii=0; ii < num_events; ii++ ) {
+            while (1) {
+                client_socket_fd = accept(server_socket_fd, NULL, NULL);
+                if (client_socket_fd == -1) {
+                    if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                        break;
+                    } else {
+                        perror("Could not accept");
+                        exit(1);
+                    }
+                }
+
+                handle_client_connection(client_socket_fd, backend_addr, backend_port_str);
+            }
         }
 
-        handle_client_connection(client_socket_fd, backend_addr, backend_port_str);
+
     }
 
 }
