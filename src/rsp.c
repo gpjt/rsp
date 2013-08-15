@@ -149,17 +149,45 @@ int make_socket_non_blocking(int socket_fd) {
 }
 
 
+
+struct server_socket_event_closure {
+    char *backend_addr;
+    char *backend_port_str;
+};
+
+
+
+void handle_server_socket_event(int server_socket_fd, struct server_socket_event_closure *closure) {
+    int client_socket_fd;
+
+    while (1) {
+        client_socket_fd = accept(server_socket_fd, NULL, NULL);
+        if (client_socket_fd == -1) {
+            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                break;
+            } else {
+                perror("Could not accept");
+                exit(1);
+            }
+        }
+
+        handle_client_connection(client_socket_fd, closure->backend_addr, closure->backend_port_str);
+    }
+}
+
+
+
 int main(int argc, char *argv[]) {
     char *server_port_str;
     char *backend_addr;
     char *backend_port_str;
 
     int epoll_fd;
-    int server_socket_fd;
-    int client_socket_fd;
-
     struct epoll_event epoll_events[MAX_EPOLL_EVENTS];
     struct epoll_event server_socket_event;
+
+    int server_socket_fd;
+    struct server_socket_event_closure *closure;
 
 
     if (argc != 4) {
@@ -184,6 +212,9 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    closure = malloc(sizeof(struct server_socket_event_closure));
+    closure->backend_addr = backend_addr;
+    closure->backend_port_str = backend_port_str;
     server_socket_event.data.fd = server_socket_fd;
     server_socket_event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &server_socket_event) == -1) {
@@ -197,19 +228,7 @@ int main(int argc, char *argv[]) {
 
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
-            while (1) {
-                client_socket_fd = accept(server_socket_fd, NULL, NULL);
-                if (client_socket_fd == -1) {
-                    if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-                        break;
-                    } else {
-                        perror("Could not accept");
-                        exit(1);
-                    }
-                }
-
-                handle_client_connection(client_socket_fd, backend_addr, backend_port_str);
-            }
+            handle_server_socket_event(server_socket_fd, closure);
         }
 
 
