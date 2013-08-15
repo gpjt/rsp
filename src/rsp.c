@@ -149,16 +149,26 @@ int make_socket_non_blocking(int socket_fd) {
 }
 
 
+struct epoll_event_handler_data {
+    int fd;
+    void (*handle)(int, void *);
+    void *closure;
+};
 
-struct server_socket_event_closure {
+
+
+struct server_socket_event_data {
     char *backend_addr;
     char *backend_port_str;
 };
 
 
 
-void handle_server_socket_event(int server_socket_fd, struct server_socket_event_closure *closure) {
+void handle_server_socket_event(int server_socket_fd, void *cls) {
+    struct server_socket_event_data *closure;
     int client_socket_fd;
+
+    closure = (struct server_socket_event_data *) cls;
 
     while (1) {
         client_socket_fd = accept(server_socket_fd, NULL, NULL);
@@ -187,7 +197,8 @@ int main(int argc, char *argv[]) {
     struct epoll_event server_socket_event;
 
     int server_socket_fd;
-    struct server_socket_event_closure *closure;
+    struct epoll_event_handler_data *server_socket_event_handler;
+    struct server_socket_event_data *server_socket_event_closure;
 
 
     if (argc != 4) {
@@ -212,10 +223,16 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    closure = malloc(sizeof(struct server_socket_event_closure));
-    closure->backend_addr = backend_addr;
-    closure->backend_port_str = backend_port_str;
-    server_socket_event.data.fd = server_socket_fd;
+    server_socket_event_closure = malloc(sizeof(struct server_socket_event_data));
+    server_socket_event_closure->backend_addr = backend_addr;
+    server_socket_event_closure->backend_port_str = backend_port_str;
+
+    server_socket_event_handler = malloc(sizeof(struct epoll_event_handler_data));
+    server_socket_event_handler->fd = server_socket_fd;
+    server_socket_event_handler->handle = handle_server_socket_event;
+    server_socket_event_handler->closure = server_socket_event_closure;
+
+    server_socket_event.data.ptr = server_socket_event_handler;
     server_socket_event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &server_socket_event) == -1) {
         perror("Couldn't register server socket with epoll");
@@ -228,9 +245,9 @@ int main(int argc, char *argv[]) {
 
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
-            handle_server_socket_event(server_socket_fd, closure);
+            struct epoll_event_handler_data *handler_data = (struct epoll_event_handler_data *) epoll_events[ii].data.ptr;
+            handler_data->handle(handler_data->fd, handler_data->closure);
         }
-
 
     }
 
