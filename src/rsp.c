@@ -17,7 +17,7 @@
 
 struct epoll_event_handler_data {
     int fd;
-    void (*handle)(int, void *);
+    void (*handle)(int, uint32_t, void *);
     void *closure;
 };
 
@@ -48,15 +48,34 @@ struct client_socket_event_data {
 
 
 
-void handle_client_socket_event(int client_socket_fd, void *cls) {
+void handle_client_socket_event(int client_socket_fd, uint32_t events, void *cls) {
     struct client_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
     closure = (struct client_socket_event_data *) cls;
+    
+    if ((events & EPOLLERR) | (events & EPOLLHUP)) {
+        close(client_socket_fd);
+        close(closure->backend_socket_fd);
+        free(closure);
+        return;
+    }
 
-    bytes_read = read(client_socket_fd, buffer, BUFFER_SIZE);
-    write(closure->backend_socket_fd, buffer, bytes_read);
+    if (events & EPOLLIN) {
+        bytes_read = read(client_socket_fd, buffer, BUFFER_SIZE);
+        if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            return;
+        }
+    
+        if (bytes_read == 0 || bytes_read == -1) {
+            close(client_socket_fd);
+            close(closure->backend_socket_fd);
+            free(closure);
+        }
+
+        write(closure->backend_socket_fd, buffer, bytes_read);
+    }
 }
 
 
@@ -67,15 +86,34 @@ struct backend_socket_event_data {
 
 
 
-void handle_backend_socket_event(int backend_socket_fd, void *cls) {
+void handle_backend_socket_event(int backend_socket_fd, uint32_t events, void *cls) {
     struct backend_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
     closure = (struct backend_socket_event_data *) cls;
 
-    bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE);
-    write(closure->client_socket_fd, buffer, bytes_read);
+    if ((events & EPOLLERR) | (events & EPOLLHUP)) {
+        close(backend_socket_fd);
+        close(closure->client_socket_fd);
+        free(closure);
+        return;
+    }
+
+    if (events & EPOLLIN) {
+        bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE);
+        if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            return;
+        }
+
+        if (bytes_read == 0 || bytes_read == -1) {
+            close(backend_socket_fd);
+            close(closure->client_socket_fd);
+            free(closure);
+        }
+
+        write(closure->client_socket_fd, buffer, bytes_read);
+    }
 }
 
 
@@ -150,7 +188,7 @@ void handle_client_connection(int epoll_fd,
     client_socket_event_handler->closure = client_socket_event_closure;
 
     client_socket_event.data.ptr = client_socket_event_handler;
-    client_socket_event.events = EPOLLIN | EPOLLET;
+    client_socket_event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket_fd, &client_socket_event) == -1) {
         perror("Couldn't register client socket with epoll");
         exit(-1);
@@ -167,14 +205,12 @@ void handle_client_connection(int epoll_fd,
     backend_socket_event_handler->closure = backend_socket_event_closure;
 
     backend_socket_event.data.ptr = backend_socket_event_handler;
-    backend_socket_event.events = EPOLLIN | EPOLLET;
+    backend_socket_event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, backend_socket_fd, &backend_socket_event) == -1) {
         perror("Couldn't register backend socket with epoll");
         exit(-1);
     }
 
-
-    close(client_socket_fd);
 }
 
 
@@ -239,7 +275,7 @@ struct server_socket_event_data {
 
 
 
-void handle_server_socket_event(int server_socket_fd, void *cls) {
+void handle_server_socket_event(int server_socket_fd, uint32_t events, void *cls) {
     struct server_socket_event_data *closure;
     int client_socket_fd;
 
@@ -309,7 +345,7 @@ int main(int argc, char *argv[]) {
     server_socket_event_handler->closure = server_socket_event_closure;
 
     server_socket_event.data.ptr = server_socket_event_handler;
-    server_socket_event.events = EPOLLIN | EPOLLET;
+    server_socket_event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &server_socket_event) == -1) {
         perror("Couldn't register server socket with epoll");
         exit(-1);
@@ -322,7 +358,7 @@ int main(int argc, char *argv[]) {
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
             struct epoll_event_handler_data *handler_data = (struct epoll_event_handler_data *) epoll_events[ii].data.ptr;
-            handler_data->handle(handler_data->fd, handler_data->closure);
+            handler_data->handle(handler_data->fd, epoll_events[ii].events, handler_data->closure);
         }
 
     }
