@@ -15,7 +15,73 @@
 #define BUFFER_SIZE 4096
 
 
-void handle_client_connection(int client_socket_fd, 
+struct epoll_event_handler_data {
+    int fd;
+    void (*handle)(int, void *);
+    void *closure;
+};
+
+
+
+
+int make_socket_non_blocking(int socket_fd) {
+    int flags;
+    int fcntl_set_result;
+
+    flags = fcntl(socket_fd, F_GETFL, 0);
+    if (flags == -1) {
+        perror("Couldn't get socket flags");
+        exit(1);
+    }
+
+    flags |= O_NONBLOCK;
+    if (fcntl(socket_fd, F_SETFL, flags) == -1) {
+        perror("Couldn't set socket flags");
+        exit(-1);
+    }
+}
+
+
+struct client_socket_event_data {
+    int backend_socket_fd;
+};
+
+
+
+void handle_client_socket_event(int client_socket_fd, void *cls) {
+    struct client_socket_event_data *closure;
+    char buffer[BUFFER_SIZE];
+    int bytes_read;
+
+    closure = (struct client_socket_event_data *) cls;
+
+    bytes_read = read(client_socket_fd, buffer, BUFFER_SIZE);
+    write(closure->backend_socket_fd, buffer, bytes_read);
+}
+
+
+
+struct backend_socket_event_data {
+    int client_socket_fd;
+};
+
+
+
+void handle_backend_socket_event(int backend_socket_fd, void *cls) {
+    struct backend_socket_event_data *closure;
+    char buffer[BUFFER_SIZE];
+    int bytes_read;
+
+    closure = (struct backend_socket_event_data *) cls;
+
+    bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE);
+    write(closure->client_socket_fd, buffer, bytes_read);
+}
+
+
+
+void handle_client_connection(int epoll_fd,
+                              int client_socket_fd, 
                               char *backend_host, 
                               char *backend_port_str) 
 {
@@ -27,8 +93,15 @@ void handle_client_connection(int client_socket_fd,
 
     int backend_socket_fd;
 
-    char buffer[BUFFER_SIZE];
-    int bytes_read;
+    struct epoll_event client_socket_event;
+    struct client_socket_event_data *client_socket_event_closure;
+    struct epoll_event_handler_data *client_socket_event_handler;
+
+    struct epoll_event backend_socket_event;
+    struct backend_socket_event_data *backend_socket_event_closure;
+    struct epoll_event_handler_data *backend_socket_event_handler;
+
+
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -67,12 +140,39 @@ void handle_client_connection(int client_socket_fd,
 
     freeaddrinfo(addrs);
 
-    bytes_read = read(client_socket_fd, buffer, BUFFER_SIZE);
-    write(backend_socket_fd, buffer, bytes_read);
+    make_socket_non_blocking(client_socket_fd);
+    client_socket_event_closure = malloc(sizeof(struct client_socket_event_data));
+    client_socket_event_closure->backend_socket_fd = backend_socket_fd;
 
-    while (bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE)) {
-        write(client_socket_fd, buffer, bytes_read);
+    client_socket_event_handler = malloc(sizeof(struct epoll_event_handler_data));
+    client_socket_event_handler->fd = client_socket_fd;
+    client_socket_event_handler->handle = handle_client_socket_event;
+    client_socket_event_handler->closure = client_socket_event_closure;
+
+    client_socket_event.data.ptr = client_socket_event_handler;
+    client_socket_event.events = EPOLLIN | EPOLLET;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket_fd, &client_socket_event) == -1) {
+        perror("Couldn't register client socket with epoll");
+        exit(-1);
     }
+
+
+    make_socket_non_blocking(backend_socket_fd);
+    backend_socket_event_closure = malloc(sizeof(struct backend_socket_event_data));
+    backend_socket_event_closure->client_socket_fd = client_socket_fd;
+
+    backend_socket_event_handler = malloc(sizeof(struct epoll_event_handler_data));
+    backend_socket_event_handler->fd = backend_socket_fd;
+    backend_socket_event_handler->handle = handle_backend_socket_event;
+    backend_socket_event_handler->closure = backend_socket_event_closure;
+
+    backend_socket_event.data.ptr = backend_socket_event_handler;
+    backend_socket_event.events = EPOLLIN | EPOLLET;
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, backend_socket_fd, &backend_socket_event) == -1) {
+        perror("Couldn't register backend socket with epoll");
+        exit(-1);
+    }
+
 
     close(client_socket_fd);
 }
@@ -131,33 +231,8 @@ int create_and_bind(char *server_port_str) {
 }
 
 
-int make_socket_non_blocking(int socket_fd) {
-    int flags;
-    int fcntl_set_result;
-
-    flags = fcntl(socket_fd, F_GETFL, 0);
-    if (flags == -1) {
-        perror("Couldn't get socket flags");
-        exit(1);
-    }
-
-    flags |= O_NONBLOCK;
-    if (fcntl(socket_fd, F_SETFL, flags) == -1) {
-        perror("Couldn't set socket flags");
-        exit(-1);
-    }
-}
-
-
-struct epoll_event_handler_data {
-    int fd;
-    void (*handle)(int, void *);
-    void *closure;
-};
-
-
-
 struct server_socket_event_data {
+    int epoll_fd;
     char *backend_addr;
     char *backend_port_str;
 };
@@ -181,7 +256,7 @@ void handle_server_socket_event(int server_socket_fd, void *cls) {
             }
         }
 
-        handle_client_connection(client_socket_fd, closure->backend_addr, closure->backend_port_str);
+        handle_client_connection(closure->epoll_fd, client_socket_fd, closure->backend_addr, closure->backend_port_str);
     }
 }
 
@@ -224,6 +299,7 @@ int main(int argc, char *argv[]) {
     }
 
     server_socket_event_closure = malloc(sizeof(struct server_socket_event_data));
+    server_socket_event_closure->epoll_fd = epoll_fd;
     server_socket_event_closure->backend_addr = backend_addr;
     server_socket_event_closure->backend_port_str = backend_port_str;
 
