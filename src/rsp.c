@@ -18,7 +18,7 @@
 
 struct epoll_event_handler_data {
     int fd;
-    int (*handle)(struct epoll_event_handler_data *, int, uint32_t);
+    int (*handle)(struct epoll_event_handler_data *, uint32_t);
     void *closure;
 };
 
@@ -49,7 +49,7 @@ struct client_socket_event_data {
 
 
 
-int handle_client_socket_event(struct epoll_event_handler_data *self, int client_socket_fd, uint32_t events) {
+int handle_client_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
     struct client_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -57,20 +57,20 @@ int handle_client_socket_event(struct epoll_event_handler_data *self, int client
     closure = (struct client_socket_event_data *) self->closure;
     
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        close(client_socket_fd);
+        close(self->fd);
         close(closure->backend_socket_fd);
         free(closure);
         return 1;
     }
 
     if (events & EPOLLIN) {
-        bytes_read = read(client_socket_fd, buffer, BUFFER_SIZE);
+        bytes_read = read(self->fd, buffer, BUFFER_SIZE);
         if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             return 0;
         }
     
         if (bytes_read == 0 || bytes_read == -1) {
-            close(client_socket_fd);
+            close(self->fd);
             close(closure->backend_socket_fd);
             free(closure);
             return 1;
@@ -90,7 +90,7 @@ struct backend_socket_event_data {
 
 
 
-int handle_backend_socket_event(struct epoll_event_handler_data *self, int backend_socket_fd, uint32_t events) {
+int handle_backend_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
     struct backend_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -98,20 +98,20 @@ int handle_backend_socket_event(struct epoll_event_handler_data *self, int backe
     closure = (struct backend_socket_event_data *) self->closure;
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        close(backend_socket_fd);
+        close(self->fd);
         close(closure->client_socket_fd);
         free(closure);
         return 1;
     }
 
     if (events & EPOLLIN) {
-        bytes_read = read(backend_socket_fd, buffer, BUFFER_SIZE);
+        bytes_read = read(self->fd, buffer, BUFFER_SIZE);
         if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             return 0;
         }
 
         if (bytes_read == 0 || bytes_read == -1) {
-            close(backend_socket_fd);
+            close(self->fd);
             close(closure->client_socket_fd);
             free(closure);
             return 1;
@@ -282,14 +282,14 @@ struct server_socket_event_data {
 
 
 
-int handle_server_socket_event(struct epoll_event_handler_data *self, int server_socket_fd, uint32_t events) {
+int handle_server_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
     struct server_socket_event_data *closure;
     int client_socket_fd;
 
     closure = (struct server_socket_event_data *) self->closure;
 
     while (1) {
-        client_socket_fd = accept(server_socket_fd, NULL, NULL);
+        client_socket_fd = accept(self->fd, NULL, NULL);
         if (client_socket_fd == -1) {
             if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
                 break;
@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
             struct epoll_event_handler_data *handler_data = (struct epoll_event_handler_data *) epoll_events[ii].data.ptr;
-            if (handler_data->handle(handler_data, handler_data->fd, epoll_events[ii].events)) {
+            if (handler_data->handle(handler_data, epoll_events[ii].events)) {
                 free(handler_data);
             }
         }
