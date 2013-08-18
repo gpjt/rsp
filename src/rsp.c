@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <sys/epoll.h>
 
+#include "netutils.h"
+
 
 #define MAX_EPOLL_EVENTS 10
 #define MAX_LISTEN_BACKLOG 1
@@ -23,24 +25,6 @@ struct epoll_event_handler_data {
 };
 
 
-
-
-int make_socket_non_blocking(int socket_fd) {
-    int flags;
-    int fcntl_set_result;
-
-    flags = fcntl(socket_fd, F_GETFL, 0);
-    if (flags == -1) {
-        perror("Couldn't get socket flags");
-        exit(1);
-    }
-
-    flags |= O_NONBLOCK;
-    if (fcntl(socket_fd, F_SETFL, flags) == -1) {
-        perror("Couldn't set socket flags");
-        exit(-1);
-    }
-}
 
 
 struct client_socket_event_data {
