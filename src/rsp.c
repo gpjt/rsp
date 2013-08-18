@@ -56,7 +56,7 @@ int handle_client_socket_event(int client_socket_fd, uint32_t events, void *cls)
 
     closure = (struct client_socket_event_data *) cls;
     
-    if ((events & EPOLLERR) | (events & EPOLLHUP)) {
+    if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
         close(client_socket_fd);
         close(closure->backend_socket_fd);
         free(closure);
@@ -97,7 +97,7 @@ int handle_backend_socket_event(int backend_socket_fd, uint32_t events, void *cl
 
     closure = (struct backend_socket_event_data *) cls;
 
-    if ((events & EPOLLERR) | (events & EPOLLHUP)) {
+    if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
         close(backend_socket_fd);
         close(closure->client_socket_fd);
         free(closure);
@@ -195,7 +195,7 @@ void handle_client_connection(int epoll_fd,
     client_socket_event_handler->closure = client_socket_event_closure;
 
     client_socket_event.data.ptr = client_socket_event_handler;
-    client_socket_event.events = EPOLLIN;
+    client_socket_event.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket_fd, &client_socket_event) == -1) {
         perror("Couldn't register client socket with epoll");
         exit(-1);
@@ -212,7 +212,7 @@ void handle_client_connection(int epoll_fd,
     backend_socket_event_handler->closure = backend_socket_event_closure;
 
     backend_socket_event.data.ptr = backend_socket_event_handler;
-    backend_socket_event.events = EPOLLIN;
+    backend_socket_event.events = EPOLLIN | EPOLLRDHUP;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, backend_socket_fd, &backend_socket_event) == -1) {
         perror("Couldn't register backend socket with epoll");
         exit(-1);
