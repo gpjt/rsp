@@ -18,7 +18,7 @@
 
 struct epoll_event_handler_data {
     int fd;
-    int (*handle)(int, uint32_t, struct epoll_event_handler_data *);
+    int (*handle)(struct epoll_event_handler_data *, int, uint32_t);
     void *closure;
 };
 
@@ -49,7 +49,7 @@ struct client_socket_event_data {
 
 
 
-int handle_client_socket_event(int client_socket_fd, uint32_t events, struct epoll_event_handler_data *self) {
+int handle_client_socket_event(struct epoll_event_handler_data *self, int client_socket_fd, uint32_t events) {
     struct client_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -90,7 +90,7 @@ struct backend_socket_event_data {
 
 
 
-int handle_backend_socket_event(int backend_socket_fd, uint32_t events, struct epoll_event_handler_data *self) {
+int handle_backend_socket_event(struct epoll_event_handler_data *self, int backend_socket_fd, uint32_t events) {
     struct backend_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -282,7 +282,7 @@ struct server_socket_event_data {
 
 
 
-int handle_server_socket_event(int server_socket_fd, uint32_t events, struct epoll_event_handler_data *self) {
+int handle_server_socket_event(struct epoll_event_handler_data *self, int server_socket_fd, uint32_t events) {
     struct server_socket_event_data *closure;
     int client_socket_fd;
 
@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
             struct epoll_event_handler_data *handler_data = (struct epoll_event_handler_data *) epoll_events[ii].data.ptr;
-            if (handler_data->handle(handler_data->fd, epoll_events[ii].events, handler_data)) {
+            if (handler_data->handle(handler_data, handler_data->fd, epoll_events[ii].events)) {
                 free(handler_data);
             }
         }
