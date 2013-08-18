@@ -18,7 +18,7 @@
 
 struct epoll_event_handler_data {
     int fd;
-    int (*handle)(int, uint32_t, void *);
+    int (*handle)(int, uint32_t, struct epoll_event_handler_data *);
     void *closure;
 };
 
@@ -49,12 +49,12 @@ struct client_socket_event_data {
 
 
 
-int handle_client_socket_event(int client_socket_fd, uint32_t events, void *cls) {
+int handle_client_socket_event(int client_socket_fd, uint32_t events, struct epoll_event_handler_data *self) {
     struct client_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
-    closure = (struct client_socket_event_data *) cls;
+    closure = (struct client_socket_event_data *) self->closure;
     
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
         close(client_socket_fd);
@@ -90,12 +90,12 @@ struct backend_socket_event_data {
 
 
 
-int handle_backend_socket_event(int backend_socket_fd, uint32_t events, void *cls) {
+int handle_backend_socket_event(int backend_socket_fd, uint32_t events, struct epoll_event_handler_data *self) {
     struct backend_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
-    closure = (struct backend_socket_event_data *) cls;
+    closure = (struct backend_socket_event_data *) self->closure;
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
         close(backend_socket_fd);
@@ -282,11 +282,11 @@ struct server_socket_event_data {
 
 
 
-int handle_server_socket_event(int server_socket_fd, uint32_t events, void *cls) {
+int handle_server_socket_event(int server_socket_fd, uint32_t events, struct epoll_event_handler_data *self) {
     struct server_socket_event_data *closure;
     int client_socket_fd;
 
-    closure = (struct server_socket_event_data *) cls;
+    closure = (struct server_socket_event_data *) self->closure;
 
     while (1) {
         client_socket_fd = accept(server_socket_fd, NULL, NULL);
@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
             struct epoll_event_handler_data *handler_data = (struct epoll_event_handler_data *) epoll_events[ii].data.ptr;
-            if (handler_data->handle(handler_data->fd, epoll_events[ii].events, handler_data->closure)) {
+            if (handler_data->handle(handler_data->fd, epoll_events[ii].events, handler_data)) {
                 free(handler_data);
             }
         }
