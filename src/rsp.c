@@ -309,7 +309,6 @@ int main(int argc, char *argv[]) {
     make_socket_non_blocking(server_socket_fd);
 
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
-    printf("Started.  Listening on port %s.\n", server_port_str);
 
     epoll_fd = epoll_create1(0);
     if (epoll_fd == -1) {
@@ -334,6 +333,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
+    printf("Started.  Listening on port %s.\n", server_port_str);
     do_reactor_loop(epoll_fd);
 
 }
