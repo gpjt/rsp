@@ -14,7 +14,6 @@
 #include "netutils.h"
 
 
-#define MAX_EPOLL_EVENTS 10
 #define MAX_LISTEN_BACKLOG 1
 #define BUFFER_SIZE 4096
 
@@ -289,7 +288,6 @@ int main(int argc, char *argv[]) {
     char *backend_port_str;
 
     int epoll_fd;
-    struct epoll_event epoll_events[MAX_EPOLL_EVENTS];
     struct epoll_event server_socket_event;
 
     int server_socket_fd;
@@ -336,19 +334,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    while (1) {
-        int ii;
-        int num_events;
-
-        num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
-        for (ii=0; ii < num_events; ii++ ) {
-            struct epoll_event_handler_data *handler_data = (struct epoll_event_handler_data *) epoll_events[ii].data.ptr;
-            if (handler_data->handle(handler_data, epoll_events[ii].events)) {
-                free(handler_data);
-            }
-        }
-
-    }
+    do_reactor_loop(epoll_fd);
 
 }
 
