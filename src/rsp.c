@@ -281,7 +281,6 @@ int handle_server_socket_event(struct epoll_event_handler_data *self, uint32_t e
 }
 
 
-
 int main(int argc, char *argv[]) {
     char *server_port_str;
     char *backend_addr;
@@ -326,12 +325,7 @@ int main(int argc, char *argv[]) {
     server_socket_event_handler->handle = handle_server_socket_event;
     server_socket_event_handler->closure = server_socket_event_closure;
 
-    server_socket_event.data.ptr = server_socket_event_handler;
-    server_socket_event.events = EPOLLIN;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_socket_fd, &server_socket_event) == -1) {
-        perror("Couldn't register server socket with epoll");
-        exit(-1);
-    }
+    add_epoll_handler(epoll_fd, server_socket_event_handler, EPOLLIN);
 
     printf("Started.  Listening on port %s.\n", server_port_str);
     do_reactor_loop(epoll_fd);
