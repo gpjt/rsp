@@ -12,6 +12,7 @@
 
 #include "epollinterface.h"
 #include "netutils.h"
+#include "server_socket.h"
 
 
 #define MAX_LISTEN_BACKLOG 1
@@ -236,38 +237,6 @@ int create_and_bind(char *server_port_str) {
 }
 
 
-struct server_socket_event_data {
-    int epoll_fd;
-    char *backend_addr;
-    char *backend_port_str;
-};
-
-
-
-int handle_server_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
-    struct server_socket_event_data *closure;
-    int client_socket_fd;
-
-    closure = (struct server_socket_event_data *) self->closure;
-
-    while (1) {
-        client_socket_fd = accept(self->fd, NULL, NULL);
-        if (client_socket_fd == -1) {
-            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-                break;
-            } else {
-                perror("Could not accept");
-                exit(1);
-            }
-        }
-
-        handle_client_connection(closure->epoll_fd, client_socket_fd, closure->backend_addr, closure->backend_port_str);
-    }
-
-    return 0;
-}
-
-
 int main(int argc, char *argv[]) {
     char *server_port_str;
     char *backend_addr;
@@ -277,7 +246,6 @@ int main(int argc, char *argv[]) {
 
     int server_socket_fd;
     struct epoll_event_handler_data *server_socket_event_handler;
-    struct server_socket_event_data *server_socket_event_closure;
 
 
     if (argc != 4) {
@@ -301,15 +269,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    server_socket_event_closure = malloc(sizeof(struct server_socket_event_data));
-    server_socket_event_closure->epoll_fd = epoll_fd;
-    server_socket_event_closure->backend_addr = backend_addr;
-    server_socket_event_closure->backend_port_str = backend_port_str;
-
-    server_socket_event_handler = malloc(sizeof(struct epoll_event_handler_data));
-    server_socket_event_handler->fd = server_socket_fd;
-    server_socket_event_handler->handle = handle_server_socket_event;
-    server_socket_event_handler->closure = server_socket_event_closure;
+    server_socket_event_handler = create_server_socket_handler(server_socket_fd, epoll_fd, backend_addr, backend_port_str);
 
     add_epoll_handler(epoll_fd, server_socket_event_handler, EPOLLIN);
 
