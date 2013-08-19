@@ -13,6 +13,13 @@
 #define MAX_LISTEN_BACKLOG 10
 
 
+struct server_socket_event_data {
+    int epoll_fd;
+    char *backend_addr;
+    char *backend_port_str;
+};
+
+
 int handle_server_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
     struct server_socket_event_data *closure;
     int client_socket_fd;
