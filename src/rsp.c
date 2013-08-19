@@ -113,11 +113,9 @@ void handle_client_connection(int epoll_fd,
 
     int backend_socket_fd;
 
-    struct epoll_event client_socket_event;
     struct client_socket_event_data *client_socket_event_closure;
     struct epoll_event_handler_data *client_socket_event_handler;
 
-    struct epoll_event backend_socket_event;
     struct backend_socket_event_data *backend_socket_event_closure;
     struct epoll_event_handler_data *backend_socket_event_handler;
 
@@ -169,13 +167,7 @@ void handle_client_connection(int epoll_fd,
     client_socket_event_handler->handle = handle_client_socket_event;
     client_socket_event_handler->closure = client_socket_event_closure;
 
-    client_socket_event.data.ptr = client_socket_event_handler;
-    client_socket_event.events = EPOLLIN | EPOLLRDHUP;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_socket_fd, &client_socket_event) == -1) {
-        perror("Couldn't register client socket with epoll");
-        exit(-1);
-    }
-
+    add_epoll_handler(epoll_fd, client_socket_event_handler, EPOLLIN | EPOLLRDHUP);
 
     make_socket_non_blocking(backend_socket_fd);
     backend_socket_event_closure = malloc(sizeof(struct backend_socket_event_data));
@@ -186,12 +178,7 @@ void handle_client_connection(int epoll_fd,
     backend_socket_event_handler->handle = handle_backend_socket_event;
     backend_socket_event_handler->closure = backend_socket_event_closure;
 
-    backend_socket_event.data.ptr = backend_socket_event_handler;
-    backend_socket_event.events = EPOLLIN | EPOLLRDHUP;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, backend_socket_fd, &backend_socket_event) == -1) {
-        perror("Couldn't register backend socket with epoll");
-        exit(-1);
-    }
+    add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLIN | EPOLLRDHUP);
 
 }
 
@@ -287,7 +274,6 @@ int main(int argc, char *argv[]) {
     char *backend_port_str;
 
     int epoll_fd;
-    struct epoll_event server_socket_event;
 
     int server_socket_fd;
     struct epoll_event_handler_data *server_socket_event_handler;
