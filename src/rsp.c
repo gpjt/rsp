@@ -10,21 +10,13 @@
 #include <errno.h>
 #include <sys/epoll.h>
 
+#include "epollinterface.h"
 #include "netutils.h"
 
 
 #define MAX_EPOLL_EVENTS 10
 #define MAX_LISTEN_BACKLOG 1
 #define BUFFER_SIZE 4096
-
-
-struct epoll_event_handler_data {
-    int fd;
-    int (*handle)(struct epoll_event_handler_data *, uint32_t);
-    void *closure;
-};
-
-
 
 
 struct client_socket_event_data {
