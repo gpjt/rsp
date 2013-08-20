@@ -81,15 +81,7 @@ void handle_client_connection(int epoll_fd,
 
     freeaddrinfo(addrs);
 
-    make_socket_non_blocking(client_socket_fd);
-    client_socket_event_closure = malloc(sizeof(struct client_socket_event_data));
-    client_socket_event_closure->backend_socket_fd = backend_socket_fd;
-
-    client_socket_event_handler = malloc(sizeof(struct epoll_event_handler));
-    client_socket_event_handler->fd = client_socket_fd;
-    client_socket_event_handler->handle = handle_client_socket_event;
-    client_socket_event_handler->closure = client_socket_event_closure;
-
+    client_socket_event_handler = create_client_socket_handler(client_socket_fd, backend_socket_fd);
     add_epoll_handler(epoll_fd, client_socket_event_handler, EPOLLIN | EPOLLRDHUP);
 
     make_socket_non_blocking(backend_socket_fd);
