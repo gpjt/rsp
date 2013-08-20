@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     char *backend_port_str;
 
     int epoll_fd;
-    struct epoll_event_handler_data *server_socket_event_handler;
+    struct epoll_event_handler *server_socket_event_handler;
 
 
     if (argc != 4) {

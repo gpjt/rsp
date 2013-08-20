@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 4096
 
 
-int handle_client_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
+int handle_client_socket_event(struct epoll_event_handler *self, uint32_t events) {
     struct client_socket_event_data *closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;

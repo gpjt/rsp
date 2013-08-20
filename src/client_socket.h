@@ -4,4 +4,4 @@ struct client_socket_event_data {
 
 
 
-extern int handle_client_socket_event(struct epoll_event_handler_data *self, uint32_t events);
+extern int handle_client_socket_event(struct epoll_event_handler *self, uint32_t events);

@@ -37,10 +37,10 @@ void handle_client_connection(int epoll_fd,
     int backend_socket_fd;
 
     struct client_socket_event_data *client_socket_event_closure;
-    struct epoll_event_handler_data *client_socket_event_handler;
+    struct epoll_event_handler *client_socket_event_handler;
 
     struct backend_socket_event_data *backend_socket_event_closure;
-    struct epoll_event_handler_data *backend_socket_event_handler;
+    struct epoll_event_handler *backend_socket_event_handler;
 
 
 
@@ -85,7 +85,7 @@ void handle_client_connection(int epoll_fd,
     client_socket_event_closure = malloc(sizeof(struct client_socket_event_data));
     client_socket_event_closure->backend_socket_fd = backend_socket_fd;
 
-    client_socket_event_handler = malloc(sizeof(struct epoll_event_handler_data));
+    client_socket_event_handler = malloc(sizeof(struct epoll_event_handler));
     client_socket_event_handler->fd = client_socket_fd;
     client_socket_event_handler->handle = handle_client_socket_event;
     client_socket_event_handler->closure = client_socket_event_closure;
@@ -96,7 +96,7 @@ void handle_client_connection(int epoll_fd,
     backend_socket_event_closure = malloc(sizeof(struct backend_socket_event_data));
     backend_socket_event_closure->client_socket_fd = client_socket_fd;
 
-    backend_socket_event_handler = malloc(sizeof(struct epoll_event_handler_data));
+    backend_socket_event_handler = malloc(sizeof(struct epoll_event_handler));
     backend_socket_event_handler->fd = backend_socket_fd;
     backend_socket_event_handler->handle = handle_backend_socket_event;
     backend_socket_event_handler->closure = backend_socket_event_closure;
@@ -107,7 +107,7 @@ void handle_client_connection(int epoll_fd,
 
 
 
-int handle_server_socket_event(struct epoll_event_handler_data *self, uint32_t events) {
+int handle_server_socket_event(struct epoll_event_handler *self, uint32_t events) {
     struct server_socket_event_data *closure;
     int client_socket_fd;
 
@@ -184,8 +184,8 @@ int create_and_bind(char *server_port_str) {
 }
 
 
-struct epoll_event_handler_data *create_server_socket_handler(int epoll_fd, char *server_port_str, char *backend_addr, char *backend_port_str) {
-    struct epoll_event_handler_data *result;
+struct epoll_event_handler *create_server_socket_handler(int epoll_fd, char *server_port_str, char *backend_addr, char *backend_port_str) {
+    struct epoll_event_handler *result;
     struct server_socket_event_data *closure;
 
     int server_socket_fd;
@@ -200,7 +200,7 @@ struct epoll_event_handler_data *create_server_socket_handler(int epoll_fd, char
     closure->backend_addr = backend_addr;
     closure->backend_port_str = backend_port_str;
 
-    result = malloc(sizeof(struct epoll_event_handler_data));
+    result = malloc(sizeof(struct epoll_event_handler));
     result->fd = server_socket_fd;
     result->handle = handle_server_socket_event;
     result->closure = closure;
