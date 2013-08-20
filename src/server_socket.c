@@ -18,29 +18,29 @@
 
 struct server_socket_event_data {
     int epoll_fd;
-    char *backend_addr;
-    char *backend_port_str;
+    char* backend_addr;
+    char* backend_port_str;
 };
 
 
 void handle_client_connection(int epoll_fd,
                               int client_socket_fd, 
-                              char *backend_host, 
-                              char *backend_port_str) 
+                              char* backend_host, 
+                              char* backend_port_str) 
 {
 
     struct addrinfo hints;
-    struct addrinfo *addrs;
-    struct addrinfo *addrs_iter;
+    struct addrinfo* addrs;
+    struct addrinfo* addrs_iter;
     int getaddrinfo_error;
 
     int backend_socket_fd;
 
-    struct client_socket_event_data *client_socket_event_closure;
-    struct epoll_event_handler *client_socket_event_handler;
+    struct client_socket_event_data* client_socket_event_closure;
+    struct epoll_event_handler* client_socket_event_handler;
 
-    struct backend_socket_event_data *backend_socket_event_closure;
-    struct epoll_event_handler *backend_socket_event_handler;
+    struct backend_socket_event_data* backend_socket_event_closure;
+    struct epoll_event_handler* backend_socket_event_handler;
 
 
 
@@ -91,11 +91,11 @@ void handle_client_connection(int epoll_fd,
 
 
 
-int handle_server_socket_event(struct epoll_event_handler *self, uint32_t events) {
-    struct server_socket_event_data *closure;
+int handle_server_socket_event(struct epoll_event_handler* self, uint32_t events) {
+    struct server_socket_event_data* closure;
     int client_socket_fd;
 
-    closure = (struct server_socket_event_data *) self->closure;
+    closure = (struct server_socket_event_data*) self->closure;
 
     while (1) {
         client_socket_fd = accept(self->fd, NULL, NULL);
@@ -115,12 +115,12 @@ int handle_server_socket_event(struct epoll_event_handler *self, uint32_t events
 }
 
 
-int create_and_bind(char *server_port_str) {
+int create_and_bind(char* server_port_str) {
     int server_socket_fd;
 
     struct addrinfo hints;
-    struct addrinfo *addrs;
-    struct addrinfo *addr_iter;
+    struct addrinfo* addrs;
+    struct addrinfo* addr_iter;
     int getaddrinfo_error;
 
     int so_reuseaddr;
@@ -168,9 +168,9 @@ int create_and_bind(char *server_port_str) {
 }
 
 
-struct epoll_event_handler *create_server_socket_handler(int epoll_fd, char *server_port_str, char *backend_addr, char *backend_port_str) {
-    struct epoll_event_handler *result;
-    struct server_socket_event_data *closure;
+struct epoll_event_handler* create_server_socket_handler(int epoll_fd, char* server_port_str, char* backend_addr, char* backend_port_str) {
+    struct epoll_event_handler* result;
+    struct server_socket_event_data* closure;
 
     int server_socket_fd;
 

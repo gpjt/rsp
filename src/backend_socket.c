@@ -15,12 +15,12 @@ struct backend_socket_event_data {
 };
 
 
-int handle_backend_socket_event(struct epoll_event_handler *self, uint32_t events) {
-    struct backend_socket_event_data *closure;
+int handle_backend_socket_event(struct epoll_event_handler* self, uint32_t events) {
+    struct backend_socket_event_data* closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
-    closure = (struct backend_socket_event_data *) self->closure;
+    closure = (struct backend_socket_event_data*) self->closure;
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
         close(self->fd);
@@ -49,9 +49,9 @@ int handle_backend_socket_event(struct epoll_event_handler *self, uint32_t event
 }
 
 
-struct epoll_event_handler *create_backend_socket_handler(int backend_socket_fd, int client_socket_fd) {
-    struct backend_socket_event_data *closure;
-    struct epoll_event_handler *result;
+struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd, int client_socket_fd) {
+    struct backend_socket_event_data* closure;
+    struct epoll_event_handler* result;
 
     make_socket_non_blocking(backend_socket_fd);
 

@@ -6,13 +6,13 @@
 
 
 
-int main(int argc, char *argv[]) {
-    char *server_port_str;
-    char *backend_addr;
-    char *backend_port_str;
+int main(int argc, char* argv[]) {
+    char* server_port_str;
+    char* backend_addr;
+    char* backend_port_str;
 
     int epoll_fd;
-    struct epoll_event_handler *server_socket_event_handler;
+    struct epoll_event_handler* server_socket_event_handler;
 
 
     if (argc != 4) {
