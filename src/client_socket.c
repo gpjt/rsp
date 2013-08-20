@@ -48,17 +48,17 @@ int handle_client_socket_event(struct epoll_event_handler *self, uint32_t events
 
 
 struct epoll_event_handler *create_client_socket_handler(int client_socket_fd, int backend_socket_fd) {
-    struct client_socket_event_data *client_socket_event_closure;
-    struct epoll_event_handler *client_socket_event_handler;
+    struct client_socket_event_data *closure;
+    struct epoll_event_handler *result;
 
     make_socket_non_blocking(client_socket_fd);
 
-    client_socket_event_closure = malloc(sizeof(struct client_socket_event_data));
-    client_socket_event_closure->backend_socket_fd = backend_socket_fd;
+    closure = malloc(sizeof(struct client_socket_event_data));
+    closure->backend_socket_fd = backend_socket_fd;
 
-    client_socket_event_handler = malloc(sizeof(struct epoll_event_handler));
-    client_socket_event_handler->fd = client_socket_fd;
-    client_socket_event_handler->handle = handle_client_socket_event;
-    client_socket_event_handler->closure = client_socket_event_closure;
+    result = malloc(sizeof(struct epoll_event_handler));
+    result->fd = client_socket_fd;
+    result->handle = handle_client_socket_event;
+    result->closure = closure;
 
 }
