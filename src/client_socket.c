@@ -16,7 +16,7 @@
 #define BUFFER_SIZE 4096
 
 struct client_socket_event_data {
-    int backend_socket_fd;
+    struct epoll_event_handler* backend_handler;
 };
 
 
@@ -35,17 +35,17 @@ int handle_client_socket_event(struct epoll_event_handler* self, uint32_t events
 
         if (bytes_read == 0 || bytes_read == -1) {
             close(self->fd);
-            close(closure->backend_socket_fd);
+            close(closure->backend_handler->fd);
             free(closure);
             return 1;
         }
 
-        write(closure->backend_socket_fd, buffer, bytes_read);
+        write(closure->backend_handler->fd, buffer, bytes_read);
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
         close(self->fd);
-        close(closure->backend_socket_fd);
+        close(closure->backend_handler->fd);
         free(closure);
         return 1;
     }
@@ -54,7 +54,7 @@ int handle_client_socket_event(struct epoll_event_handler* self, uint32_t events
 }
 
 
-int connect_to_backend(int client_socket_fd, int epoll_fd, char* backend_host, char* backend_port_str) {
+struct epoll_event_handler* connect_to_backend(int client_socket_fd, int epoll_fd, char* backend_host, char* backend_port_str) {
     struct addrinfo hints;
     struct addrinfo* addrs;
     struct addrinfo* addrs_iter;
@@ -106,7 +106,7 @@ int connect_to_backend(int client_socket_fd, int epoll_fd, char* backend_host, c
     backend_socket_event_handler = create_backend_socket_handler(backend_socket_fd, client_socket_fd);
     add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLIN | EPOLLRDHUP);
 
-    return backend_socket_fd;
+    return backend_socket_event_handler;
 }
 
 
@@ -117,7 +117,7 @@ struct epoll_event_handler* create_client_socket_handler(int client_socket_fd, i
     make_socket_non_blocking(client_socket_fd);
 
     closure = malloc(sizeof(struct client_socket_event_data));
-    closure->backend_socket_fd = connect_to_backend(client_socket_fd, epoll_fd, backend_host, backend_port_str);
+    closure->backend_handler = connect_to_backend(client_socket_fd, epoll_fd, backend_host, backend_port_str);
 
     result = malloc(sizeof(struct epoll_event_handler));
     result->fd = client_socket_fd;
