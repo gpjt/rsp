@@ -52,6 +52,15 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
 }
 
 
+
+void close_backend_socket(struct epoll_event_handler* self) {
+    close(self->fd);
+    free(self->closure);
+    free(self);
+}
+
+
+
 struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd, struct epoll_event_handler* client_handler) {
     struct backend_socket_event_data* closure;
     struct epoll_event_handler* result;
@@ -64,6 +73,7 @@ struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd,
     result = malloc(sizeof(struct epoll_event_handler));
     result->fd = backend_socket_fd;
     result->handle = handle_backend_socket_event;
+    result->close = close_backend_socket;
     result->closure = closure;
 
     return result;

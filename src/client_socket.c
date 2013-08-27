@@ -54,6 +54,15 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
 }
 
 
+
+void close_client_socket(struct epoll_event_handler* self) {
+    close(self->fd);
+    free(self->closure);
+    free(self);
+}
+
+
+
 struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* client_handler, int epoll_fd, char* backend_host, char* backend_port_str) {
     struct addrinfo hints;
     struct addrinfo* addrs;
@@ -121,6 +130,7 @@ struct epoll_event_handler* create_client_socket_handler(int client_socket_fd, i
     result = malloc(sizeof(struct epoll_event_handler));
     result->fd = client_socket_fd;
     result->handle = handle_client_socket_event;
+    result->close = close_client_socket;
     result->closure = closure;
 
     closure->backend_handler = connect_to_backend(result, epoll_fd, backend_host, backend_port_str);
