@@ -1,6 +1,6 @@
 struct epoll_event_handler {
     int fd;
-    int (*handle)(struct epoll_event_handler*, uint32_t);
+    void (*handle)(struct epoll_event_handler*, uint32_t);
     void* closure;
 };
 

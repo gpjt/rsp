@@ -30,9 +30,7 @@ void do_reactor_loop(int epoll_fd) {
         num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
         for (ii=0; ii < num_events; ii++ ) {
             struct epoll_event_handler* handler = (struct epoll_event_handler*) epoll_events[ii].data.ptr;
-            if (handler->handle(handler, epoll_events[ii].events)) {
-                free(handler);
-            }
+            handler->handle(handler, epoll_events[ii].events);
         }
 
     }

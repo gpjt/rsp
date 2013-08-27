@@ -36,7 +36,7 @@ void handle_client_connection(int epoll_fd,
 
 
 
-int handle_server_socket_event(struct epoll_event_handler* self, uint32_t events) {
+void handle_server_socket_event(struct epoll_event_handler* self, uint32_t events) {
     struct server_socket_event_data* closure;
     int client_socket_fd;
 
@@ -55,8 +55,6 @@ int handle_server_socket_event(struct epoll_event_handler* self, uint32_t events
 
         handle_client_connection(closure->epoll_fd, client_socket_fd, closure->backend_addr, closure->backend_port_str);
     }
-
-    return 0;
 }
 
 
