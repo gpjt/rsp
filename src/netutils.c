@@ -1,11 +1,14 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 
 
-int make_socket_non_blocking(int socket_fd) {
+#include "netutils.h"
+
+
+void make_socket_non_blocking(int socket_fd) {
     int flags;
-    int fcntl_set_result;
 
     flags = fcntl(socket_fd, F_GETFL, 0);
     if (flags == -1) {

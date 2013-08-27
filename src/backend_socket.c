@@ -1,8 +1,10 @@
+#include <unistd.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/epoll.h>
 
+#include "netutils.h"
 #include "epollinterface.h"
 #include "backend_socket.h"
 

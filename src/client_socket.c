@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@
 #include <string.h>
 
 
+#include "netutils.h"
 #include "epollinterface.h"
 #include "backend_socket.h"
 #include "client_socket.h"
@@ -60,7 +62,6 @@ int connect_to_backend(int client_socket_fd, int epoll_fd, char* backend_host, c
 
     int backend_socket_fd;
 
-    struct backend_socket_event_data* backend_socket_event_closure;
     struct epoll_event_handler* backend_socket_event_handler;
 
 

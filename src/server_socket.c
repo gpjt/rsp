@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,6 +6,7 @@
 #include <sys/epoll.h>
 #include <netdb.h>
 
+#include "netutils.h"
 #include "epollinterface.h"
 #include "server_socket.h"
 #include "client_socket.h"
@@ -25,7 +27,6 @@ void handle_client_connection(int epoll_fd,
                               char* backend_port_str) 
 {
 
-    struct client_socket_event_data* client_socket_event_closure;
     struct epoll_event_handler* client_socket_event_handler;
 
     client_socket_event_handler = create_client_socket_handler(client_socket_fd, epoll_fd, backend_host, backend_port_str);
