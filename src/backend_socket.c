@@ -67,5 +67,6 @@ struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd,
     result->closure = closure;
 
     return result;
+
 }
 
