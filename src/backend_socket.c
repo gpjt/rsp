@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/epoll.h>
@@ -24,13 +25,6 @@ int handle_backend_socket_event(struct epoll_event_handler* self, uint32_t event
 
     closure = (struct backend_socket_event_data*) self->closure;
 
-    if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        close(self->fd);
-        close(closure->client_socket_fd);
-        free(closure);
-        return 1;
-    }
-
     if (events & EPOLLIN) {
         bytes_read = read(self->fd, buffer, BUFFER_SIZE);
         if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
@@ -45,6 +39,13 @@ int handle_backend_socket_event(struct epoll_event_handler* self, uint32_t event
         }
 
         write(closure->client_socket_fd, buffer, bytes_read);
+    }
+
+    if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
+        close(self->fd);
+        close(closure->client_socket_fd);
+        free(closure);
+        return 1;
     }
 
     return 0;
