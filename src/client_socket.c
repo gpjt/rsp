@@ -34,9 +34,8 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
         }
 
         if (bytes_read == 0 || bytes_read == -1) {
-            close(self->fd);
-            close(closure->backend_handler->fd);
-            free(closure);
+            closure->backend_handler->close(closure->backend_handler);
+            self->close(self);
             return;
         }
 
@@ -44,9 +43,8 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        close(self->fd);
-        close(closure->backend_handler->fd);
-        free(closure);
+        closure->backend_handler->close(closure->backend_handler);
+        self->close(self);
         return;
     }
 
