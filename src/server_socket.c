@@ -1,17 +1,13 @@
-#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/epoll.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
 
 #include "epollinterface.h"
 #include "server_socket.h"
 #include "client_socket.h"
-#include "backend_socket.h"
 
 #define MAX_LISTEN_BACKLOG 10
 
