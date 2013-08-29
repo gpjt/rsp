@@ -18,7 +18,8 @@ struct backend_socket_event_data {
 };
 
 
-void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t events) {
+void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t events)
+{
     struct backend_socket_event_data* closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -51,7 +52,8 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
 
 
 
-void close_backend_socket(struct epoll_event_handler* self) {
+void close_backend_socket(struct epoll_event_handler* self)
+{
     close(self->fd);
     free(self->closure);
     free(self);
@@ -59,7 +61,8 @@ void close_backend_socket(struct epoll_event_handler* self) {
 
 
 
-struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd, struct epoll_event_handler* client_handler) {
+struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd, struct epoll_event_handler* client_handler)
+{
     struct backend_socket_event_data* closure;
     struct epoll_event_handler* result;
 

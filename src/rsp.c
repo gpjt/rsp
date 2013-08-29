@@ -7,7 +7,8 @@
 
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     char* server_port_str;
     char* backend_addr;
     char* backend_port_str;

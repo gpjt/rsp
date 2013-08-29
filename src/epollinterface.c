@@ -8,7 +8,8 @@
 #define MAX_EPOLL_EVENTS 10
 
 
-void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32_t event_mask) {
+void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32_t event_mask)
+{
     struct epoll_event event;
 
     event.data.ptr = handler;
@@ -20,7 +21,8 @@ void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32
 }
 
 
-void do_reactor_loop(int epoll_fd) {
+void do_reactor_loop(int epoll_fd)
+{
     struct epoll_event epoll_events[MAX_EPOLL_EVENTS];
 
     while (1) {

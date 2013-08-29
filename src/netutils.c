@@ -7,7 +7,8 @@
 #include "netutils.h"
 
 
-void make_socket_non_blocking(int socket_fd) {
+void make_socket_non_blocking(int socket_fd)
+{
     int flags;
 
     flags = fcntl(socket_fd, F_GETFL, 0);

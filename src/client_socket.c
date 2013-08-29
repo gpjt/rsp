@@ -20,7 +20,8 @@ struct client_socket_event_data {
 };
 
 
-void handle_client_socket_event(struct epoll_event_handler* self, uint32_t events) {
+void handle_client_socket_event(struct epoll_event_handler* self, uint32_t events)
+{
     struct client_socket_event_data* closure;
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -53,7 +54,8 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
 
 
 
-void close_client_socket(struct epoll_event_handler* self) {
+void close_client_socket(struct epoll_event_handler* self)
+{
     close(self->fd);
     free(self->closure);
     free(self);
@@ -61,7 +63,8 @@ void close_client_socket(struct epoll_event_handler* self) {
 
 
 
-struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* client_handler, int epoll_fd, char* backend_host, char* backend_port_str) {
+struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* client_handler, int epoll_fd, char* backend_host, char* backend_port_str)
+{
     struct addrinfo hints;
     struct addrinfo* addrs;
     struct addrinfo* addrs_iter;
@@ -117,7 +120,8 @@ struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* clien
 }
 
 
-struct epoll_event_handler* create_client_socket_handler(int client_socket_fd, int epoll_fd, char* backend_host, char* backend_port_str) {
+struct epoll_event_handler* create_client_socket_handler(int client_socket_fd, int epoll_fd, char* backend_host, char* backend_port_str)
+{
     struct client_socket_event_data* closure;
     struct epoll_event_handler* result;
     

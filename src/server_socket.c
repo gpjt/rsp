@@ -36,7 +36,8 @@ void handle_client_connection(int epoll_fd,
 
 
 
-void handle_server_socket_event(struct epoll_event_handler* self, uint32_t events) {
+void handle_server_socket_event(struct epoll_event_handler* self, uint32_t events)
+{
     struct server_socket_event_data* closure;
     int client_socket_fd;
 
@@ -58,7 +59,8 @@ void handle_server_socket_event(struct epoll_event_handler* self, uint32_t event
 }
 
 
-int create_and_bind(char* server_port_str) {
+int create_and_bind(char* server_port_str)
+{
     int server_socket_fd;
 
     struct addrinfo hints;
@@ -111,7 +113,8 @@ int create_and_bind(char* server_port_str) {
 }
 
 
-struct epoll_event_handler* create_server_socket_handler(int epoll_fd, char* server_port_str, char* backend_addr, char* backend_port_str) {
+struct epoll_event_handler* create_server_socket_handler(int epoll_fd, char* server_port_str, char* backend_addr, char* backend_port_str)
+{
     struct epoll_event_handler* result;
     struct server_socket_event_data* closure;
 
