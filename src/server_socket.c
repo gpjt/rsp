@@ -27,9 +27,10 @@ void handle_client_connection(int epoll_fd,
                               char* backend_port_str) 
 {
 
-    struct epoll_event_handler* client_socket_event_handler;
-
-    client_socket_event_handler = create_client_socket_handler(client_socket_fd, epoll_fd, backend_host, backend_port_str);
+    struct epoll_event_handler* client_socket_event_handler = create_client_socket_handler(client_socket_fd,
+                                                                                           epoll_fd,
+                                                                                           backend_host,
+                                                                                           backend_port_str);
     add_epoll_handler(epoll_fd, client_socket_event_handler, EPOLLIN | EPOLLRDHUP);
 
 }
@@ -38,11 +39,9 @@ void handle_client_connection(int epoll_fd,
 
 void handle_server_socket_event(struct epoll_event_handler* self, uint32_t events)
 {
-    struct server_socket_event_data* closure;
+    struct server_socket_event_data* closure = (struct server_socket_event_data*) self->closure;
+
     int client_socket_fd;
-
-    closure = (struct server_socket_event_data*) self->closure;
-
     while (1) {
         client_socket_fd = accept(self->fd, NULL, NULL);
         if (client_socket_fd == -1) {
@@ -61,26 +60,22 @@ void handle_server_socket_event(struct epoll_event_handler* self, uint32_t event
 
 int create_and_bind(char* server_port_str)
 {
-    int server_socket_fd;
-
     struct addrinfo hints;
-    struct addrinfo* addrs;
-    struct addrinfo* addr_iter;
-    int getaddrinfo_error;
-
-    int so_reuseaddr;
-
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
+    struct addrinfo* addrs;
+    int getaddrinfo_error;
     getaddrinfo_error = getaddrinfo(NULL, server_port_str, &hints, &addrs);
     if (getaddrinfo_error != 0) {
         fprintf(stderr, "Couldn't find local host details: %s\n", gai_strerror(getaddrinfo_error));
         exit(1);
     }
 
+    int server_socket_fd;
+    struct addrinfo* addr_iter;
     for (addr_iter = addrs; addr_iter != NULL; addr_iter = addr_iter->ai_next) {
         server_socket_fd = socket(addr_iter->ai_family,
                                   addr_iter->ai_socktype,
@@ -89,7 +84,7 @@ int create_and_bind(char* server_port_str)
             continue;
         }
 
-        so_reuseaddr = 1;
+        int so_reuseaddr = 1;
         setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof(so_reuseaddr));
 
         if (bind(server_socket_fd,
@@ -115,22 +110,19 @@ int create_and_bind(char* server_port_str)
 
 struct epoll_event_handler* create_server_socket_handler(int epoll_fd, char* server_port_str, char* backend_addr, char* backend_port_str)
 {
-    struct epoll_event_handler* result;
-    struct server_socket_event_data* closure;
 
     int server_socket_fd;
-
     server_socket_fd = create_and_bind(server_port_str);
     make_socket_non_blocking(server_socket_fd);
 
     listen(server_socket_fd, MAX_LISTEN_BACKLOG);
 
-    closure = malloc(sizeof(struct server_socket_event_data));
+    struct server_socket_event_data* closure = malloc(sizeof(struct server_socket_event_data));
     closure->epoll_fd = epoll_fd;
     closure->backend_addr = backend_addr;
     closure->backend_port_str = backend_port_str;
 
-    result = malloc(sizeof(struct epoll_event_handler));
+    struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = server_socket_fd;
     result->handle = handle_server_socket_event;
     result->close = NULL;

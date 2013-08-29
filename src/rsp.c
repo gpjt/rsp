@@ -9,30 +9,23 @@
 
 int main(int argc, char* argv[])
 {
-    char* server_port_str;
-    char* backend_addr;
-    char* backend_port_str;
-
-    int epoll_fd;
-    struct epoll_event_handler* server_socket_event_handler;
-
-
     if (argc != 4) {
         fprintf(stderr, 
                 "Usage: %s <server_port> <backend_addr> <backend_port>\n", 
                 argv[0]);
         exit(1);
     }
-    server_port_str = argv[1];
-    backend_addr = argv[2];
-    backend_port_str = argv[3];
+    char* server_port_str = argv[1];
+    char* backend_addr = argv[2];
+    char* backend_port_str = argv[3];
 
-    epoll_fd = epoll_create1(0);
+    int epoll_fd = epoll_create1(0);
     if (epoll_fd == -1) {
         perror("Couldn't create epoll FD");
         exit(1);
     }
 
+    struct epoll_event_handler* server_socket_event_handler;
     server_socket_event_handler = create_server_socket_handler(epoll_fd, 
                                                                server_port_str,
                                                                backend_addr,
