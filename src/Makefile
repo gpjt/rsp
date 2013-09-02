@@ -13,7 +13,7 @@ clean:
 	rm rsp
 
 %.o: %.c $(HEADER_FILES)
-	$(CC) -c -Wall $<
+	$(CC) -c -Wall -std=gnu99 $<
 
 rsp: $(OBJ_FILES) 
 	$(CC) -o $@ $(OBJ_FILES)
