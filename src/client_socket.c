@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/epoll.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
 
@@ -34,8 +36,8 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
         }
 
         if (bytes_read == 0 || bytes_read == -1) {
-            closure->backend_handler->close(closure->backend_handler);
-            self->close(self);
+            close_backend_socket(closure->backend_handler);
+            close_client_socket(self);
             return;
         }
 
@@ -43,8 +45,8 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        closure->backend_handler->close(closure->backend_handler);
-        self->close(self);
+        close_backend_socket(closure->backend_handler);
+        close_client_socket(self);
         return;
     }
 
@@ -53,11 +55,11 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
 
 
 
-void close_client_socket(struct epoll_event_handler* self)
+void close_client_socket(struct epoll_event_handler* handler)
 {
-    close(self->fd);
-    free(self->closure);
-    free(self);
+    close(handler->fd);
+    free(handler->closure);
+    free(handler);
 }
 
 
@@ -131,7 +133,6 @@ struct epoll_event_handler* create_client_socket_handler(int client_socket_fd,
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = client_socket_fd;
     result->handle = handle_client_socket_event;
-    result->close = close_client_socket;
     result->closure = closure;
 
     closure->backend_handler = connect_to_backend(result, epoll_fd, backend_host, backend_port_str);
