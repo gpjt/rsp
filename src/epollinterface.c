@@ -5,7 +5,7 @@
 
 #include "epollinterface.h"
 
-#define MAX_EPOLL_EVENTS 10
+#define MAX_EPOLL_EVENTS 1
 
 
 void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32_t event_mask)
