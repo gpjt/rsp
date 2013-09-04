@@ -11,7 +11,7 @@
 #include "server_socket.h"
 #include "client_socket.h"
 
-#define MAX_LISTEN_BACKLOG 10
+#define MAX_LISTEN_BACKLOG 4096
 
 
 struct server_socket_event_data {
