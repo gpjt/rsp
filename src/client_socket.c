@@ -76,7 +76,11 @@ struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* clien
     struct addrinfo* addrs;
     getaddrinfo_error = getaddrinfo(backend_host, backend_port_str, &hints, &addrs);
     if (getaddrinfo_error != 0) {
-        fprintf(stderr, "Couldn't find backend: %s\n", gai_strerror(getaddrinfo_error));
+        if (getaddrinfo_error == EAI_SYSTEM) {
+            fprintf(stderr, "Couldn't find backend: system error: %s\n", strerror(errno));
+        } else {
+            fprintf(stderr, "Couldn't find backend: %s\n", gai_strerror(getaddrinfo_error));
+        }
         exit(1);
     }
 
