@@ -5,8 +5,6 @@
 
 #include "epollinterface.h"
 
-#define MAX_EPOLL_EVENTS 1
-
 
 void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32_t event_mask)
 {
@@ -23,18 +21,14 @@ void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32
 
 void do_reactor_loop(int epoll_fd)
 {
-    struct epoll_event epoll_events[MAX_EPOLL_EVENTS];
+    struct epoll_event current_epoll_event;
 
     while (1) {
-        int ii;
-        int num_events;
+        struct epoll_event_handler* handler;
 
-        num_events = epoll_wait(epoll_fd, epoll_events, MAX_EPOLL_EVENTS, -1);
-        for (ii=0; ii < num_events; ii++ ) {
-            struct epoll_event_handler* handler = (struct epoll_event_handler*) epoll_events[ii].data.ptr;
-            handler->handle(handler, epoll_events[ii].events);
-        }
-
+        epoll_wait(epoll_fd, &current_epoll_event, 1, -1);
+        handler = (struct epoll_event_handler*) current_epoll_event.data.ptr;
+        handler->handle(handler, current_epoll_event.events);
     }
 
 }
