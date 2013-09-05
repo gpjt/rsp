@@ -8,6 +8,7 @@
 #include "netutils.h"
 #include "epollinterface.h"
 #include "backend_socket.h"
+#include "client_socket.h"
 
 
 #define BUFFER_SIZE 4096
@@ -32,8 +33,8 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
         }
 
         if (bytes_read == 0 || bytes_read == -1) {
-            closure->client_handler->close(closure->client_handler);
-            self->close(self);
+            close_client_socket(closure->client_handler);
+            close_backend_socket(self);
             return;
         }
 
@@ -41,8 +42,8 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        closure->client_handler->close(closure->client_handler);
-        self->close(self);
+        close_client_socket(closure->client_handler);
+        close_backend_socket(self);
         return;
     }
 
@@ -71,7 +72,6 @@ struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd,
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = backend_socket_fd;
     result->handle = handle_backend_socket_event;
-    result->close = close_backend_socket;
     result->closure = closure;
 
     return result;

@@ -125,7 +125,6 @@ struct epoll_event_handler* create_server_socket_handler(int epoll_fd, char* ser
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = server_socket_fd;
     result->handle = handle_server_socket_event;
-    result->close = NULL;
     result->closure = closure;
 
     return result;
