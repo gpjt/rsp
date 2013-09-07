@@ -47,7 +47,6 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
         return;
     }
 
-    return;
 }
 
 

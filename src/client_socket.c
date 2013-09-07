@@ -48,7 +48,6 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
         return;
     }
 
-    return;
 }
 
 
