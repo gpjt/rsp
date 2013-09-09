@@ -31,7 +31,6 @@ int main(int argc, char* argv[])
         exit(1);
     }
     char* server_port_str = (char*) lua_tostring(L, -1);
-    printf("sps: %s\n", server_port_str);
 
     lua_getglobal(L, "backendAddress");
     if (!lua_isstring(L, -1)) {
@@ -39,7 +38,6 @@ int main(int argc, char* argv[])
         exit(1);
     }
     char* backend_addr = (char*) lua_tostring(L, -1);
-    printf("ba: %s\n", backend_addr);
 
     lua_getglobal(L, "backendPort");
     if (!lua_isstring(L, -1)) {
@@ -47,7 +45,6 @@ int main(int argc, char* argv[])
         exit(1);
     }
     char* backend_port_str = (char*) lua_tostring(L, -1);
-    printf("bp: %s\n", backend_port_str);
 
     int epoll_fd = epoll_create1(0);
     if (epoll_fd == -1) {
