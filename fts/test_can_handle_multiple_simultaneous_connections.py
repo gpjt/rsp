@@ -1,6 +1,7 @@
 import os
 import pexpect
 import requests
+from tempfile import mkstemp
 from threading import Thread
 import time
 import unittest
@@ -15,7 +16,14 @@ class TestCanHandleMultipleSimultaneousConnections(unittest.TestCase):
     def test_multiple_roughly_simultaneous_requests_complete_in_time_roughly_equivalent_to_one_request(self):
         backend = create_and_start_backend(5)
 
-        server = pexpect.spawn(RSP_BINARY, ["8000", "127.0.0.1", "8888"])
+        _, config_file = mkstemp(suffix=".lua")
+        with open(config_file, "w") as f:
+            f.writelines([
+                'listenPort = "8000"'
+                'backendAddress = "127.0.0.1"'
+                'backendPort = "8888"'
+            ])
+        server = pexpect.spawn(RSP_BINARY, [config_file])
         server.expect("Started.  Listening on port 8000.")
         try:
             responses = []
@@ -47,5 +55,6 @@ class TestCanHandleMultipleSimultaneousConnections(unittest.TestCase):
                 self.assertEqual(response.text, "Hello from the mock server\n")
         finally:
             server.kill(9)
+            os.remove(config_file)
 
             backend.shutdown()

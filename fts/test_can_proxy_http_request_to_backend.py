@@ -1,6 +1,8 @@
 import os
 import requests
 import pexpect
+import sys
+from tempfile import mkstemp
 import unittest
 
 from mock_backend import create_and_start_backend
@@ -17,8 +19,14 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
         backend = create_and_start_backend(0)
 
         # ...and an rsp option that proxies everything to it.
-        server = pexpect.spawn(RSP_BINARY, ["8000", "127.0.0.1", "8888"])
-        server.expect("Started.  Listening on port 8000.")
+        _, config_file = mkstemp(suffix=".lua")
+        with open(config_file, "w") as f:
+            f.writelines([
+                'listenPort = "8000"'
+                'backendAddress = "127.0.0.1"'
+                'backendPort = "8888"'
+            ])
+        server = pexpect.spawn(RSP_BINARY, [config_file], logfile=sys.stdout)
         try:
             # Make a request and check it works.
             response = requests.get("http://127.0.0.1:8000")
@@ -31,5 +39,6 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
             self.assertEqual(response.text, "Hello from the mock server\n")
         finally:
             server.kill(9)
+            os.remove(config_file)
 
             backend.shutdown()
