@@ -89,7 +89,9 @@ int create_and_bind(char* server_port_str)
         }
 
         int so_reuseaddr = 1;
-        setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof(so_reuseaddr));
+        if (setsockopt(server_socket_fd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof(so_reuseaddr)) != 0) {
+            continue;
+        }
 
         if (bind(server_socket_fd,
                  addr_iter->ai_addr,
