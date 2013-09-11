@@ -26,7 +26,8 @@ class TestCanProxyHTTPRequestToBackend(unittest.TestCase):
                 'backendAddress = "127.0.0.1"'
                 'backendPort = "8888"'
             ])
-        server = pexpect.spawn(RSP_BINARY, [config_file], logfile=sys.stdout)
+        server = pexpect.spawn(RSP_BINARY, [config_file])
+        server.expect("Started.  Listening on port 8000.")
         try:
             # Make a request and check it works.
             response = requests.get("http://127.0.0.1:8000")
