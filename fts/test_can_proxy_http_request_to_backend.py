@@ -1,7 +1,6 @@
 import os
 import requests
 import pexpect
-import sys
 from tempfile import mkstemp
 import unittest
 
