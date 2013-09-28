@@ -7,6 +7,7 @@ sudo apt-get install python-pip
 
 sudo pip install pexpect
 sudo pip install pyflakes
+sudo pip install requests
 
 git clone http://luajit.org/git/luajit-2.0.git
 cd luajit-2.0
