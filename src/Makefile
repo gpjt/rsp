@@ -6,7 +6,7 @@ INCLUDE_DIRS := -I/usr/local/include/luajit-2.0/
 LDFLAGS := -Wl,-rpath,/usr/local/lib
 LIBS := -lluajit-5.1
 
-all: rsp
+all: rsp foo
 
 install: rsp
 	cp rsp ..
@@ -20,3 +20,6 @@ clean:
 
 rsp: $(OBJ_FILES) 
 	$(CC) -o $@ $(OBJ_FILES) $(LDFLAGS) $(LIBS)
+
+foo: foo.o epollinterface.o
+	$(CC) -o $@ foo.o epollinterface.o $(LDFLAGS) $(LIBS)
