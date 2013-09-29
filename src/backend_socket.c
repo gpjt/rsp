@@ -27,18 +27,19 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
     int bytes_read;
 
     if (events & EPOLLIN) {
-        bytes_read = read(self->fd, buffer, BUFFER_SIZE);
-        if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            return;
-        }
+        while ((bytes_read = read(self->fd, buffer, BUFFER_SIZE)) != -1 && bytes_read != 0) {
+            if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                return;
+            }
 
-        if (bytes_read == 0 || bytes_read == -1) {
-            close_client_socket(closure->client_handler);
-            close_backend_socket(self);
-            return;
-        }
+            if (bytes_read == 0 || bytes_read == -1) {
+                close_client_socket(closure->client_handler);
+                close_backend_socket(self);
+                return;
+            }
 
-        write(closure->client_handler->fd, buffer, bytes_read);
+            write(closure->client_handler->fd, buffer, bytes_read);
+        }
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {

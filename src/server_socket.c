@@ -32,7 +32,7 @@ void handle_client_connection(int epoll_fd,
                                                                epoll_fd,
                                                                backend_host,
                                                                backend_port_str);
-    add_epoll_handler(epoll_fd, client_socket_event_handler, EPOLLIN | EPOLLRDHUP);
+    add_epoll_handler(epoll_fd, client_socket_event_handler, EPOLLIN | EPOLLRDHUP | EPOLLET);
 
 }
 

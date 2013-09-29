@@ -28,18 +28,19 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
     int bytes_read;
 
     if (events & EPOLLIN) {
-        bytes_read = read(self->fd, buffer, BUFFER_SIZE);
-        if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            return;
-        }
+        while ((bytes_read = read(self->fd, buffer, BUFFER_SIZE)) != -1 && bytes_read != 0) {
+            if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                return;
+            }
 
-        if (bytes_read == 0 || bytes_read == -1) {
-            close_backend_socket(closure->backend_handler);
-            close_client_socket(self);
-            return;
-        }
+            if (bytes_read == 0 || bytes_read == -1) {
+                close_backend_socket(closure->backend_handler);
+                close_client_socket(self);
+                return;
+            }
 
-        write(closure->backend_handler->fd, buffer, bytes_read);
+            write(closure->backend_handler->fd, buffer, bytes_read);
+        }
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
@@ -114,7 +115,7 @@ struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* clien
 
     struct epoll_event_handler* backend_socket_event_handler;
     backend_socket_event_handler = create_backend_socket_handler(backend_socket_fd, client_handler);
-    add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLIN | EPOLLRDHUP);
+    add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLIN | EPOLLRDHUP | EPOLLET);
 
     return backend_socket_event_handler;
 }
