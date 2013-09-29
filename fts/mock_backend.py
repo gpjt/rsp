@@ -10,14 +10,17 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 
 
-def create_and_start_backend(request_speed):
+def create_and_start_backend(request_speed, response=None):
+    if response is None:
+       response = "Hello from the mock server\n"
+
 
     class MockServerRequestHandler(BaseHTTPRequestHandler):
         def do_GET(self):
             time.sleep(request_speed)
             self.send_response(200)
             self.end_headers()
-            self.wfile.write("Hello from the mock server\n")
+            self.wfile.write(response)
 
     httpd = ThreadedHTTPServer(('127.0.0.1', 8888), MockServerRequestHandler)
     server_thread = Thread(target=httpd.serve_forever)
