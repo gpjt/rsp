@@ -38,7 +38,7 @@ void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t even
                 return;
             }
 
-            write(closure->client_handler->fd, buffer, bytes_read);
+            write_to_client(closure->client_handler, buffer, bytes_read);
         }
     }
 

@@ -32,6 +32,7 @@ class TestCanHandleLargeResponse(unittest.TestCase):
             # Make a request and check it works.
             response = requests.get("http://127.0.0.1:8000")
             self.assertEqual(response.status_code, 200)
+            self.assertEqual(len(response.text), len(expected_response))
             self.assertEqual(response.text, expected_response, "Response incorrect")
         finally:
             server.kill(9)
