@@ -26,15 +26,21 @@ class TestGivesErrorOnLongRequests(unittest.TestCase):
         server = pexpect.spawn(RSP_BINARY, [config_file])
         server.expect("Started.  Listening on port 8000.")
 
-        sock = socket.socket()
-        sock.connect(("localhost", 8000))
-        sock.send("GET / HTTP/1.1\r")
-        while True:
-            try:
-                sent = sock.send("A-Header: some values\r")
-            except: 
-                break
-            if sent == 0:
-                break
-        return_value = sock.recv(10000)
-        self.assertTrue(return_value.startswith("HTTP/1.0 414 "))
+        try:
+            sock = socket.socket()
+            sock.connect(("localhost", 8000))
+            sock.send("GET / HTTP/1.1\r")
+            while True:
+                try:
+                    sent = sock.send("A-Header: some values\r")
+                except: 
+                    break
+                if sent == 0:
+                    break
+            return_value = sock.recv(10000)
+            self.assertTrue(return_value.startswith("HTTP/1.0 414 "))
+        finally:
+            server.kill(9)
+            os.remove(config_file)
+
+            backend.shutdown()
