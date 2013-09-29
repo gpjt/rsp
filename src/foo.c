@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     struct epoll_event_handler* backend_socket_event_handler = malloc(sizeof(struct epoll_event_handler));
     backend_socket_event_handler->fd = backend_socket_fd;
     backend_socket_event_handler->handle = print_stuff;
-    add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLOUT);
+    add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLOUT | EPOLLET);
 
     do_reactor_loop(epoll_fd);
 }
