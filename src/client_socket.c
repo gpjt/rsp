@@ -67,6 +67,7 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
             } else {
                 temp = closure->write_buffer;
                 closure->write_buffer = closure->write_buffer->next;
+                free(temp->data);
                 free(temp);
             }
         }
@@ -103,7 +104,6 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
 void add_write_buffer_entry(struct client_socket_event_data* closure, struct data_buffer_entry* new_entry) 
 {
     struct data_buffer_entry* last_buffer_entry;
-    int len;
     if (closure->write_buffer == NULL) {
         closure->write_buffer = new_entry;
     } else {
