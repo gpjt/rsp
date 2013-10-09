@@ -157,7 +157,6 @@ void close_client_socket(struct epoll_event_handler* self)
         new_entry->is_close_message = 1;
         new_entry->next = NULL;
 
-        struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
         add_write_buffer_entry(closure, new_entry);
     }
 }
