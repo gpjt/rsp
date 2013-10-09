@@ -117,9 +117,14 @@ void add_write_buffer_entry(struct client_socket_event_data* closure, struct dat
 
 void write_to_client(struct epoll_event_handler* self, char* data, int len)
 {
-    int written = write(self->fd, data, len);
-    if (written == len) {
-        return;
+    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
+
+    int written = 0;
+    if (closure->write_buffer == NULL) {
+        written = write(self->fd, data, len);
+        if (written == len) {
+            return;
+        }
     }
     if (written == -1) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -138,7 +143,6 @@ void write_to_client(struct epoll_event_handler* self, char* data, int len)
     new_entry->len = unwritten;
     new_entry->next = NULL;
 
-    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
     add_write_buffer_entry(closure, new_entry);
 }
 
