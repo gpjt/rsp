@@ -1,6 +1,17 @@
 #!/bin/bash
 echo About to promote to live.
-python upload_to_gilesthomas_com.py
+
+# Stash away the directory with the source in it
+SOURCE_DIR=`pwd`
+
+# Push from the integration repo to GitHub
 cd $1
 git push origin master
+
+# Back to the source
+cd $SOURCE_DIR
+
+# Push to gilesthomas.com
+fab -H root@www.gilesthomas.com deploy
+
 echo Promoted, all done.
