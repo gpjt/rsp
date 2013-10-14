@@ -61,7 +61,8 @@ void close_backend_socket(struct epoll_event_handler* self)
 
 
 
-struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd, 
+struct epoll_event_handler* create_backend_socket_handler(int epoll_fd, 
+                                                          int backend_socket_fd, 
                                                           struct epoll_event_handler* client_handler)
 {
     make_socket_non_blocking(backend_socket_fd);
@@ -73,6 +74,8 @@ struct epoll_event_handler* create_backend_socket_handler(int backend_socket_fd,
     result->fd = backend_socket_fd;
     result->handle = handle_backend_socket_event;
     result->closure = closure;
+
+    add_epoll_handler(epoll_fd, result, EPOLLIN | EPOLLRDHUP | EPOLLET);
 
     return result;
 }

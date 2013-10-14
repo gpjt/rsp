@@ -32,8 +32,6 @@ void handle_client_connection(int epoll_fd,
                                                                epoll_fd,
                                                                backend_host,
                                                                backend_port_str);
-    add_epoll_handler(epoll_fd, client_socket_event_handler, EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLOUT);
-
 }
 
 
@@ -135,6 +133,8 @@ struct epoll_event_handler* create_server_socket_handler(int epoll_fd,
     result->fd = server_socket_fd;
     result->handle = handle_server_socket_event;
     result->closure = closure;
+
+    add_epoll_handler(epoll_fd, result, EPOLLIN | EPOLLET);
 
     return result;
 }

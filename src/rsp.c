@@ -49,8 +49,6 @@ int main(int argc, char* argv[])
                                                                backend_addr,
                                                                backend_port_str);
 
-    add_epoll_handler(epoll_fd, server_socket_event_handler, EPOLLIN | EPOLLET);
-
     printf("Started.  Listening on port %s.\n", server_port_str);
     do_reactor_loop(epoll_fd);
 

@@ -214,8 +214,7 @@ struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* clien
     freeaddrinfo(addrs);
 
     struct epoll_event_handler* backend_socket_event_handler;
-    backend_socket_event_handler = create_backend_socket_handler(backend_socket_fd, client_handler);
-    add_epoll_handler(epoll_fd, backend_socket_event_handler, EPOLLIN | EPOLLRDHUP | EPOLLET);
+    backend_socket_event_handler = create_backend_socket_handler(epoll_fd, backend_socket_fd, client_handler);
 
     return backend_socket_event_handler;
 }
@@ -239,6 +238,8 @@ struct epoll_event_handler* create_client_socket_handler(int client_socket_fd,
 
     closure->backend_handler = connect_to_backend(result, epoll_fd, backend_host, backend_port_str);
     closure->write_buffer = NULL;
+
+    add_epoll_handler(epoll_fd, result, EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLOUT);
 
     return result;
 }
