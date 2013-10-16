@@ -2,7 +2,6 @@ import os
 import pexpect
 import requests
 import socket
-import struct
 from tempfile import mkstemp
 import unittest
 
@@ -31,20 +30,14 @@ class TestCanHandleClientDisconnect(unittest.TestCase):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
             sock.connect(("localhost", 8000))
-            #l_onoff = 1
-            #l_linger = 0
-            #sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', l_onoff, l_linger))
             sock.send("GET / HTTP/1.1\r\n")
             sock.send("\r\n")
             sock.recv(1024)
             sock.close()
 
             # Check it didn't crash
-            print "Making second request"
             response = requests.get("http://127.0.0.1:8000")
             self.assertEqual(response.status_code, 200)
-            # self.assertEqual(response.text, "Hello from the mock server\n")
-            print "Done"
         finally:
             server.kill(9)
             os.remove(config_file)
