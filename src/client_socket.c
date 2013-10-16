@@ -32,6 +32,17 @@ struct data_buffer_entry {
 
 void really_close_client_socket(struct epoll_event_handler* self)
 {
+    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
+    struct data_buffer_entry* next;
+    while (closure->write_buffer != NULL) {
+        next = closure->write_buffer->next;
+        if (!closure->write_buffer->is_close_message) {
+            free(closure->write_buffer->data);
+        }
+        free(closure->write_buffer);
+        closure->write_buffer = next;
+    }
+
     close(self->fd);
     free(self->closure);
     free(self);
@@ -48,8 +59,6 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
         while (closure->write_buffer != NULL) {
             if (closure->write_buffer->is_close_message) {
                 really_close_client_socket(self);
-                free(closure->write_buffer);
-                closure->write_buffer = NULL;
                 return;
             }
 
