@@ -14,7 +14,7 @@ RSP_BINARY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "rsp"
 
 class TestCanHandleClientDisconnect(unittest.TestCase):
 
-    def test_can_handle_client_disconnect(self):
+    def DONTtest_can_handle_client_disconnect(self):
         backend = create_and_start_backend(0, "0123456789\n" * 1024 * 1024)
 
         _, config_file = mkstemp(suffix=".lua")
