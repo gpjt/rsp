@@ -16,11 +16,6 @@
 
 #define BUFFER_SIZE 4096
 
-struct client_socket_event_data {
-    struct epoll_event_handler* backend_handler;
-    struct data_buffer_entry* write_buffer;
-};
-
 struct data_buffer_entry {
     int is_close_message;
     char* data;
@@ -171,69 +166,8 @@ void close_client_socket(struct epoll_event_handler* self)
 }
 
 
-struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* client_handler,
-                                               int epoll_fd,
-                                               char* backend_host,
-                                               char* backend_port_str)
-{
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int getaddrinfo_error;
-    struct addrinfo* addrs;
-    getaddrinfo_error = getaddrinfo(backend_host, backend_port_str, &hints, &addrs);
-    if (getaddrinfo_error != 0) {
-        if (getaddrinfo_error == EAI_SYSTEM) {
-            fprintf(stderr, "Couldn't find backend: system error: %s\n", strerror(errno));
-        } else {
-            fprintf(stderr, "Couldn't find backend: %s\n", gai_strerror(getaddrinfo_error));
-        }
-        exit(1);
-    }
-
-    int backend_socket_fd;
-    struct addrinfo* addrs_iter;
-    for (addrs_iter = addrs;
-         addrs_iter != NULL;
-         addrs_iter = addrs_iter->ai_next)
-    {
-        backend_socket_fd = socket(addrs_iter->ai_family,
-                                   addrs_iter->ai_socktype,
-                                   addrs_iter->ai_protocol);
-        if (backend_socket_fd == -1) {
-            continue;
-        }
-
-        if (connect(backend_socket_fd,
-                    addrs_iter->ai_addr,
-                    addrs_iter->ai_addrlen) != -1) {
-            break;
-        }
-
-        close(backend_socket_fd);
-    }
-
-    if (addrs_iter == NULL) {
-        fprintf(stderr, "Couldn't connect to backend");
-        exit(1);
-    }
-
-    freeaddrinfo(addrs);
-
-    struct epoll_event_handler* backend_socket_event_handler;
-    backend_socket_event_handler = create_backend_socket_handler(epoll_fd, backend_socket_fd, client_handler);
-
-    return backend_socket_event_handler;
-}
-
-
-
 struct epoll_event_handler* create_client_socket_handler(int client_socket_fd,
-                                                         int epoll_fd,
-                                                         char* backend_host,
-                                                         char* backend_port_str)
+                                                         int epoll_fd)
 {
     
     make_socket_non_blocking(client_socket_fd);
@@ -245,7 +179,6 @@ struct epoll_event_handler* create_client_socket_handler(int client_socket_fd,
     result->handle = handle_client_socket_event;
     result->closure = closure;
 
-    closure->backend_handler = connect_to_backend(result, epoll_fd, backend_host, backend_port_str);
     closure->write_buffer = NULL;
 
     add_epoll_handler(epoll_fd, result, EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLOUT);
