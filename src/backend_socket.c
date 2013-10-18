@@ -14,11 +14,6 @@
 #define BUFFER_SIZE 4096
 
 
-struct backend_socket_event_data {
-    struct epoll_event_handler* client_handler;
-};
-
-
 void handle_backend_socket_event(struct epoll_event_handler* self, uint32_t events)
 {
     struct backend_socket_event_data* closure = (struct backend_socket_event_data*) self->closure;
@@ -62,13 +57,11 @@ void close_backend_socket(struct epoll_event_handler* self)
 
 
 struct epoll_event_handler* create_backend_socket_handler(int epoll_fd, 
-                                                          int backend_socket_fd, 
-                                                          struct epoll_event_handler* client_handler)
+                                                          int backend_socket_fd) 
 {
     make_socket_non_blocking(backend_socket_fd);
 
     struct backend_socket_event_data* closure = malloc(sizeof(struct backend_socket_event_data));
-    closure->client_handler = client_handler;
 
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = backend_socket_fd;
