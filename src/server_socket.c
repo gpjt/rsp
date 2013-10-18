@@ -89,10 +89,10 @@ void handle_client_connection(int epoll_fd,
     backend_connection = create_connection(epoll_fd, backend_socket_fd);
 
     struct connection_closure* client_closure = (struct connection_closure*) client_connection->closure;
-    client_closure->backend_handler = backend_connection;
+    client_closure->peer = backend_connection;
 
     struct connection_closure* backend_closure = (struct connection_closure*) backend_connection->closure;
-    backend_closure->backend_handler = client_connection;
+    backend_closure->peer = client_connection;
 }
 
 

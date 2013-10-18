@@ -1,5 +1,5 @@
 struct connection_closure {
-    struct epoll_event_handler* backend_handler;
+    struct epoll_event_handler* peer;
     struct data_buffer_entry* write_buffer;
 };
 

@@ -87,17 +87,17 @@ void connection_handle_event(struct epoll_event_handler* self, uint32_t events)
             }
 
             if (bytes_read == 0 || bytes_read == -1) {
-                connection_close(closure->backend_handler);
+                connection_close(closure->peer);
                 connection_close(self);
                 return;
             }
 
-            connection_write(closure->backend_handler, read_buffer, bytes_read);
+            connection_write(closure->peer, read_buffer, bytes_read);
         }
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        connection_close(closure->backend_handler);
+        connection_close(closure->peer);
         connection_close(self);
         return;
     }
