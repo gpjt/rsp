@@ -83,8 +83,7 @@ void handle_client_connection(int epoll_fd,
 {
 
     struct epoll_event_handler* client_socket_event_handler;
-    client_socket_event_handler = create_client_socket_handler(client_socket_fd,
-                                                               epoll_fd);
+    client_socket_event_handler = create_client_socket_handler(epoll_fd, client_socket_fd);
 
     int backend_socket_fd = connect_to_backend(backend_host, backend_port_str);
     struct epoll_event_handler* backend_socket_event_handler;

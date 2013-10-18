@@ -166,8 +166,7 @@ void close_client_socket(struct epoll_event_handler* self)
 }
 
 
-struct epoll_event_handler* create_client_socket_handler(int client_socket_fd,
-                                                         int epoll_fd)
+struct epoll_event_handler* create_client_socket_handler(int epoll_fd, int client_socket_fd)
 {
     
     make_socket_non_blocking(client_socket_fd);
