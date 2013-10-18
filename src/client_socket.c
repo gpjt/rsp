@@ -10,7 +10,6 @@
 
 #include "netutils.h"
 #include "epollinterface.h"
-#include "backend_socket.h"
 #include "client_socket.h"
 
 
@@ -88,17 +87,17 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
             }
 
             if (bytes_read == 0 || bytes_read == -1) {
-                close_backend_socket(closure->backend_handler);
+                close_client_socket(closure->backend_handler);
                 close_client_socket(self);
                 return;
             }
 
-            write(closure->backend_handler->fd, read_buffer, bytes_read);
+            write_to_client(closure->backend_handler, read_buffer, bytes_read);
         }
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        close_backend_socket(closure->backend_handler);
+        close_client_socket(closure->backend_handler);
         close_client_socket(self);
         return;
     }
