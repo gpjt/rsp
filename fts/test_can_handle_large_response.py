@@ -36,8 +36,6 @@ class TestCanHandleLargeResponse(unittest.TestCase):
             self.assertEqual(response.text, expected_response, "Response incorrect")
         finally:
             server.kill(9)
-            for line in server.readlines():
-                print line
             os.remove(config_file)
 
             backend.shutdown()
