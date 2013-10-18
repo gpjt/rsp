@@ -12,8 +12,8 @@ install: rsp
 	cp rsp ..
 
 clean:
-	rm $(OBJ_FILES)
-	rm rsp
+	rm -f $(OBJ_FILES)
+	rm -f rsp
 
 %.o: %.c $(HEADER_FILES)
 	$(CC) -c -Wall -std=gnu99 $(INCLUDE_DIRS) $<
