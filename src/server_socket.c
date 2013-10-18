@@ -22,10 +22,8 @@ struct server_socket_event_data {
 };
 
 
-struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* client_handler,
-                                               int epoll_fd,
-                                               char* backend_host,
-                                               char* backend_port_str)
+int connect_to_backend(char* backend_host,
+                       char* backend_port_str)
 {
     struct addrinfo hints;
     memset(&hints, 0, sizeof(struct addrinfo));
@@ -73,10 +71,7 @@ struct epoll_event_handler* connect_to_backend(struct epoll_event_handler* clien
 
     freeaddrinfo(addrs);
 
-    struct epoll_event_handler* backend_socket_event_handler;
-    backend_socket_event_handler = create_backend_socket_handler(epoll_fd, backend_socket_fd, client_handler);
-
-    return backend_socket_event_handler;
+    return backend_socket_fd;
 }
 
 
@@ -91,8 +86,10 @@ void handle_client_connection(int epoll_fd,
     client_socket_event_handler = create_client_socket_handler(client_socket_fd,
                                                                epoll_fd);
 
+    int backend_socket_fd = connect_to_backend(backend_host, backend_port_str);
     struct epoll_event_handler* backend_socket_event_handler;
-    backend_socket_event_handler = connect_to_backend(client_socket_event_handler, epoll_fd, backend_host, backend_port_str);
+    backend_socket_event_handler = create_backend_socket_handler(epoll_fd, backend_socket_fd, client_socket_event_handler);
+
     struct client_socket_event_data* client_closure = (struct client_socket_event_data*) client_socket_event_handler->closure;
     client_closure->backend_handler = backend_socket_event_handler;
 }
