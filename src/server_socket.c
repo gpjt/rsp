@@ -81,18 +81,18 @@ void handle_client_connection(int epoll_fd,
                               char* backend_port_str) 
 {
 
-    struct epoll_event_handler* client_socket_event_handler;
-    client_socket_event_handler = create_client_socket_handler(epoll_fd, client_socket_fd);
+    struct epoll_event_handler* client_connection;
+    client_connection = create_connection(epoll_fd, client_socket_fd);
 
     int backend_socket_fd = connect_to_backend(backend_host, backend_port_str);
-    struct epoll_event_handler* backend_socket_event_handler;
-    backend_socket_event_handler = create_client_socket_handler(epoll_fd, backend_socket_fd);
+    struct epoll_event_handler* backend_connection;
+    backend_connection = create_connection(epoll_fd, backend_socket_fd);
 
-    struct client_socket_event_data* client_closure = (struct client_socket_event_data*) client_socket_event_handler->closure;
-    client_closure->backend_handler = backend_socket_event_handler;
+    struct connection_closure* client_closure = (struct connection_closure*) client_connection->closure;
+    client_closure->backend_handler = backend_connection;
 
-    struct client_socket_event_data* backend_closure = (struct client_socket_event_data*) backend_socket_event_handler->closure;
-    backend_closure->backend_handler = client_socket_event_handler;
+    struct connection_closure* backend_closure = (struct connection_closure*) backend_connection->closure;
+    backend_closure->backend_handler = client_connection;
 }
 
 

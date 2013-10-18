@@ -24,9 +24,9 @@ struct data_buffer_entry {
 };
 
 
-void really_close_client_socket(struct epoll_event_handler* self)
+void connection_really_close(struct epoll_event_handler* self)
 {
-    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
+    struct connection_closure* closure = (struct connection_closure* ) self->closure;
     struct data_buffer_entry* next;
     while (closure->write_buffer != NULL) {
         next = closure->write_buffer->next;
@@ -43,16 +43,16 @@ void really_close_client_socket(struct epoll_event_handler* self)
 }
 
 
-void handle_client_socket_event(struct epoll_event_handler* self, uint32_t events)
+void connection_handle_event(struct epoll_event_handler* self, uint32_t events)
 {
-    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
+    struct connection_closure* closure = (struct connection_closure*) self->closure;
     if ((events & EPOLLOUT) && (closure->write_buffer != NULL)) {
         int written;
         int to_write;
         struct data_buffer_entry* temp;
         while (closure->write_buffer != NULL) {
             if (closure->write_buffer->is_close_message) {
-                really_close_client_socket(self);
+                connection_really_close(self);
                 return;
             }
 
@@ -87,25 +87,25 @@ void handle_client_socket_event(struct epoll_event_handler* self, uint32_t event
             }
 
             if (bytes_read == 0 || bytes_read == -1) {
-                close_client_socket(closure->backend_handler);
-                close_client_socket(self);
+                connection_close(closure->backend_handler);
+                connection_close(self);
                 return;
             }
 
-            write_to_client(closure->backend_handler, read_buffer, bytes_read);
+            connection_write(closure->backend_handler, read_buffer, bytes_read);
         }
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        close_client_socket(closure->backend_handler);
-        close_client_socket(self);
+        connection_close(closure->backend_handler);
+        connection_close(self);
         return;
     }
 
 }
 
 
-void add_write_buffer_entry(struct client_socket_event_data* closure, struct data_buffer_entry* new_entry) 
+void add_write_buffer_entry(struct connection_closure* closure, struct data_buffer_entry* new_entry) 
 {
     struct data_buffer_entry* last_buffer_entry;
     if (closure->write_buffer == NULL) {
@@ -118,9 +118,9 @@ void add_write_buffer_entry(struct client_socket_event_data* closure, struct dat
 }
 
 
-void write_to_client(struct epoll_event_handler* self, char* data, int len)
+void connection_write(struct epoll_event_handler* self, char* data, int len)
 {
-    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
+    struct connection_closure* closure = (struct connection_closure* ) self->closure;
 
     int written = 0;
     if (closure->write_buffer == NULL) {
@@ -150,11 +150,11 @@ void write_to_client(struct epoll_event_handler* self, char* data, int len)
 }
 
 
-void close_client_socket(struct epoll_event_handler* self)
+void connection_close(struct epoll_event_handler* self)
 {
-    struct client_socket_event_data* closure = (struct client_socket_event_data* ) self->closure;
+    struct connection_closure* closure = (struct connection_closure* ) self->closure;
     if (closure->write_buffer == NULL) {
-        really_close_client_socket(self);
+        connection_really_close(self);
     } else {
         struct data_buffer_entry* new_entry = malloc(sizeof(struct data_buffer_entry));
         new_entry->is_close_message = 1;
@@ -165,16 +165,16 @@ void close_client_socket(struct epoll_event_handler* self)
 }
 
 
-struct epoll_event_handler* create_client_socket_handler(int epoll_fd, int client_socket_fd)
+struct epoll_event_handler* create_connection(int epoll_fd, int client_socket_fd)
 {
     
     make_socket_non_blocking(client_socket_fd);
 
-    struct client_socket_event_data* closure = malloc(sizeof(struct client_socket_event_data));
+    struct connection_closure* closure = malloc(sizeof(struct connection_closure));
 
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = client_socket_fd;
-    result->handle = handle_client_socket_event;
+    result->handle = connection_handle_event;
     result->closure = closure;
 
     closure->write_buffer = NULL;
