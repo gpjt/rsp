@@ -6,10 +6,10 @@
 #include <sys/epoll.h>
 #include <netdb.h>
 
-#include "netutils.h"
 #include "epollinterface.h"
+#include "connection.h"
+#include "netutils.h"
 #include "server_socket.h"
-#include "client_socket.h"
 
 #define MAX_LISTEN_BACKLOG 4096
 

@@ -8,9 +8,9 @@
 #include <string.h>
 
 
-#include "netutils.h"
+#include "connection.h"
 #include "epollinterface.h"
-#include "client_socket.h"
+#include "netutils.h"
 
 
 #define BUFFER_SIZE 4096
