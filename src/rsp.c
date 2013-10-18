@@ -43,11 +43,10 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    struct epoll_event_handler* server_socket_event_handler;
-    server_socket_event_handler = create_server_socket_handler(epoll_fd, 
-                                                               server_port_str,
-                                                               backend_addr,
-                                                               backend_port_str);
+    create_server_socket_handler(epoll_fd, 
+                                 server_port_str,
+                                 backend_addr,
+                                 backend_port_str);
 
     printf("Started.  Listening on port %s.\n", server_port_str);
     do_reactor_loop(epoll_fd);
