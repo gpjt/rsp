@@ -74,6 +74,17 @@ int connect_to_backend(char* backend_host,
 }
 
 
+void on_close(void* target)
+{
+    connection_close((struct epoll_event_handler*) target);
+}
+
+
+void on_read(void* target, char* buffer, int len)
+{
+    connection_write((struct epoll_event_handler*) target, buffer, len);
+}
+
 
 void handle_client_connection(int epoll_fd,
                               int client_socket_fd, 
@@ -89,11 +100,15 @@ void handle_client_connection(int epoll_fd,
     backend_connection = create_connection(epoll_fd, backend_socket_fd);
 
     struct connection_closure* client_closure = (struct connection_closure*) client_connection->closure;
+    client_closure->on_read = on_read;
     client_closure->on_read_closure = backend_connection;
+    client_closure->on_close = on_close;
     client_closure->on_close_closure = backend_connection;
 
     struct connection_closure* backend_closure = (struct connection_closure*) backend_connection->closure;
+    backend_closure->on_read = on_read;
     backend_closure->on_read_closure = client_connection;
+    backend_closure->on_close = on_close;
     backend_closure->on_close_closure = client_connection;
 }
 
