@@ -89,8 +89,7 @@ void connection_on_in_event(struct epoll_event_handler* self)
         }
 
         if (bytes_read == 0 || bytes_read == -1) {
-            connection_close(closure->peer);
-            connection_close(self);
+            connection_on_close_event(self);
             return;
         }
 
