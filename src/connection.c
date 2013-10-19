@@ -43,63 +43,82 @@ void connection_really_close(struct epoll_event_handler* self)
 }
 
 
-void connection_handle_event(struct epoll_event_handler* self, uint32_t events)
+void connection_on_out_event(struct epoll_event_handler* self)
 {
     struct connection_closure* closure = (struct connection_closure*) self->closure;
-    if ((events & EPOLLOUT) && (closure->write_buffer != NULL)) {
-        int written;
-        int to_write;
-        struct data_buffer_entry* temp;
-        while (closure->write_buffer != NULL) {
-            if (closure->write_buffer->is_close_message) {
-                connection_really_close(self);
-                return;
-            }
+    int written;
+    int to_write;
+    struct data_buffer_entry* temp;
+    while (closure->write_buffer != NULL) {
+        if (closure->write_buffer->is_close_message) {
+            connection_really_close(self);
+            return;
+        }
 
-            to_write = closure->write_buffer->len - closure->write_buffer->current_offset;
-            written = write(self->fd, closure->write_buffer->data + closure->write_buffer->current_offset, to_write);
-            if (written != to_write) {
-                if (written == -1) {
-                    if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                        perror("Error writing to client");
-                        exit(-1);
-                    }
-                    written = 0;
+        to_write = closure->write_buffer->len - closure->write_buffer->current_offset;
+        written = write(self->fd, closure->write_buffer->data + closure->write_buffer->current_offset, to_write);
+        if (written != to_write) {
+            if (written == -1) {
+                if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                    perror("Error writing to client");
+                    exit(-1);
                 }
-                closure->write_buffer->current_offset += written;
-                break;
-            } else {
-                temp = closure->write_buffer;
-                closure->write_buffer = closure->write_buffer->next;
-                free(temp->data);
-                free(temp);
+                written = 0;
             }
+            closure->write_buffer->current_offset += written;
+            break;
+        } else {
+            temp = closure->write_buffer;
+            closure->write_buffer = closure->write_buffer->next;
+            free(temp->data);
+            free(temp);
         }
     }
+}
 
+
+void connection_on_in_event(struct epoll_event_handler* self)
+{
+    struct connection_closure* closure = (struct connection_closure*) self->closure;
     char read_buffer[BUFFER_SIZE];
     int bytes_read;
 
-    if (events & EPOLLIN) {
-        while ((bytes_read = read(self->fd, read_buffer, BUFFER_SIZE)) != -1 && bytes_read != 0) {
-            if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-                return;
-            }
-
-            if (bytes_read == 0 || bytes_read == -1) {
-                connection_close(closure->peer);
-                connection_close(self);
-                return;
-            }
-
-            connection_write(closure->peer, read_buffer, bytes_read);
+    while ((bytes_read = read(self->fd, read_buffer, BUFFER_SIZE)) != -1 && bytes_read != 0) {
+        if (bytes_read == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            return;
         }
+
+        if (bytes_read == 0 || bytes_read == -1) {
+            connection_close(closure->peer);
+            connection_close(self);
+            return;
+        }
+
+        connection_write(closure->peer, read_buffer, bytes_read);
+    }
+}
+
+
+void connection_on_close_event(struct epoll_event_handler* self)
+{
+    struct connection_closure* closure = (struct connection_closure*) self->closure;
+    connection_close(closure->peer);
+    connection_close(self);
+}
+
+
+void connection_handle_event(struct epoll_event_handler* self, uint32_t events)
+{
+    if (events & EPOLLOUT) {
+        connection_on_out_event(self);
+    }
+
+    if (events & EPOLLIN) {
+        connection_on_in_event(self);
     }
 
     if ((events & EPOLLERR) | (events & EPOLLHUP) | (events & EPOLLRDHUP)) {
-        connection_close(closure->peer);
-        connection_close(self);
-        return;
+        connection_on_close_event(self);
     }
 
 }
