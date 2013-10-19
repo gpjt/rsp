@@ -21,15 +21,37 @@ struct server_socket_event_data {
 };
 
 
-void on_close(void* target)
+struct proxy_data {
+    struct epoll_event_handler* client;
+    struct epoll_event_handler* backend;
+};
+
+
+void on_client_read(void* closure, char* buffer, int len)
 {
-    connection_close((struct epoll_event_handler*) target);
+    struct proxy_data* data = (struct proxy_data*) closure;
+    connection_write(data->backend, buffer, len);
 }
 
 
-void on_read(void* target, char* buffer, int len)
+void on_client_close(void* closure)
 {
-    connection_write((struct epoll_event_handler*) target, buffer, len);
+    struct proxy_data* data = (struct proxy_data*) closure;
+    connection_close(data->backend);
+}
+
+
+void on_backend_read(void* closure, char* buffer, int len)
+{
+    struct proxy_data* data = (struct proxy_data*) closure;
+    connection_write(data->client, buffer, len);
+}
+
+
+void on_backend_close(void* closure)
+{
+    struct proxy_data* data = (struct proxy_data*) closure;
+    connection_close(data->client);
 }
 
 
@@ -38,7 +60,6 @@ void handle_client_connection(int epoll_fd,
                               char* backend_host, 
                               char* backend_port_str) 
 {
-
     struct epoll_event_handler* client_connection;
     client_connection = create_connection(epoll_fd, client_socket_fd);
 
@@ -46,17 +67,21 @@ void handle_client_connection(int epoll_fd,
     struct epoll_event_handler* backend_connection;
     backend_connection = create_connection(epoll_fd, backend_socket_fd);
 
+    struct proxy_data* proxy = malloc(sizeof(struct proxy_data));
+    proxy->client = client_connection;
+    proxy->backend = backend_connection;
+
     struct connection_closure* client_closure = (struct connection_closure*) client_connection->closure;
-    client_closure->on_read = on_read;
-    client_closure->on_read_closure = backend_connection;
-    client_closure->on_close = on_close;
-    client_closure->on_close_closure = backend_connection;
+    client_closure->on_read = on_client_read;
+    client_closure->on_read_closure = proxy;
+    client_closure->on_close = on_client_close;
+    client_closure->on_close_closure = proxy;
 
     struct connection_closure* backend_closure = (struct connection_closure*) backend_connection->closure;
-    backend_closure->on_read = on_read;
-    backend_closure->on_read_closure = client_connection;
-    backend_closure->on_close = on_close;
-    backend_closure->on_close_closure = client_connection;
+    backend_closure->on_read = on_backend_read;
+    backend_closure->on_read_closure = proxy;
+    backend_closure->on_close = on_backend_close;
+    backend_closure->on_close_closure = proxy;
 }
 
 
