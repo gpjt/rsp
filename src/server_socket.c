@@ -30,7 +30,9 @@ struct proxy_data {
 void on_client_read(void* closure, char* buffer, int len)
 {
     struct proxy_data* data = (struct proxy_data*) closure;
-    connection_write(data->backend, buffer, len);
+    if (data->backend) {
+        connection_write(data->backend, buffer, len);
+    }
 }
 
 
@@ -38,13 +40,18 @@ void on_client_close(void* closure)
 {
     struct proxy_data* data = (struct proxy_data*) closure;
     connection_close(data->backend);
+    data->client = NULL;
+    data->backend = NULL;
+    free(closure);
 }
 
 
 void on_backend_read(void* closure, char* buffer, int len)
 {
     struct proxy_data* data = (struct proxy_data*) closure;
-    connection_write(data->client, buffer, len);
+    if (data->client) {
+        connection_write(data->client, buffer, len);
+    }
 }
 
 
@@ -52,6 +59,9 @@ void on_backend_close(void* closure)
 {
     struct proxy_data* data = (struct proxy_data*) closure;
     connection_close(data->client);
+    data->client = NULL;
+    data->backend = NULL;
+    free(closure);
 }
 
 
