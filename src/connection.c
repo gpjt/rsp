@@ -8,8 +8,8 @@
 #include <string.h>
 
 
-#include "connection.h"
 #include "epollinterface.h"
+#include "connection.h"
 #include "netutils.h"
 
 

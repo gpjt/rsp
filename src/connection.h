@@ -1,6 +1,4 @@
 struct connection_closure {
-    struct epoll_event_handler* peer;
-
     void (*on_read)(void* closure, char* buffer, int len);
     void* on_read_closure;
 
