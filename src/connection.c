@@ -59,6 +59,10 @@ void connection_on_out_event(struct epoll_event_handler* self)
         written = write(self->fd, closure->write_buffer->data + closure->write_buffer->current_offset, to_write);
         if (written != to_write) {
             if (written == -1) {
+                if (errno == ECONNRESET) {
+                    connection_on_close_event(self);
+                    return;
+                }
                 if (errno != EAGAIN && errno != EWOULDBLOCK) {
                     perror("Error writing to client");
                     exit(-1);
@@ -148,6 +152,10 @@ void connection_write(struct epoll_event_handler* self, char* data, int len)
         }
     }
     if (written == -1) {
+        if (errno == ECONNRESET) {
+            connection_on_close_event(self);
+            return;
+        }
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Error writing to client");
             exit(-1);
