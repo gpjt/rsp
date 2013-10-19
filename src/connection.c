@@ -77,10 +77,22 @@ void connection_on_out_event(struct epoll_event_handler* self)
 }
 
 
+void on_close(struct epoll_event_handler* target)
+{
+    connection_close(target);
+}
+
+
+void on_read(struct epoll_event_handler* target, char* buffer, int len)
+{
+    connection_write(target, buffer, len);
+}
+
+
 void connection_on_close_event(struct epoll_event_handler* self)
 {
     struct connection_closure* closure = (struct connection_closure*) self->closure;
-    connection_close(closure->peer);
+    on_close(closure->peer);
     connection_close(self);
 }
 
@@ -101,7 +113,7 @@ void connection_on_in_event(struct epoll_event_handler* self)
             return;
         }
 
-        connection_write(closure->peer, read_buffer, bytes_read);
+        on_read(closure->peer, read_buffer, bytes_read);
     }
 }
 
