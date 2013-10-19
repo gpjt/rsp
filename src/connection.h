@@ -1,5 +1,12 @@
 struct connection_closure {
     struct epoll_event_handler* peer;
+
+    void (*on_read)(void* closure, char* buffer, int len);
+    void* on_read_closure;
+
+    void (*on_close)(void* closure);
+    void* on_close_closure;
+    
     struct data_buffer_entry* write_buffer;
 };
 

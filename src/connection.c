@@ -77,22 +77,10 @@ void connection_on_out_event(struct epoll_event_handler* self)
 }
 
 
-void on_close(struct epoll_event_handler* target)
-{
-    connection_close(target);
-}
-
-
-void on_read(struct epoll_event_handler* target, char* buffer, int len)
-{
-    connection_write(target, buffer, len);
-}
-
-
 void connection_on_close_event(struct epoll_event_handler* self)
 {
     struct connection_closure* closure = (struct connection_closure*) self->closure;
-    on_close(closure->peer);
+    on_close(closure->on_read_closure);
     connection_close(self);
 }
 
@@ -113,7 +101,7 @@ void connection_on_in_event(struct epoll_event_handler* self)
             return;
         }
 
-        on_read(closure->peer, read_buffer, bytes_read);
+        on_read(closure->on_read_closure, read_buffer, bytes_read);
     }
 }
 
@@ -195,19 +183,33 @@ void connection_close(struct epoll_event_handler* self)
 }
 
 
+void on_close(struct epoll_event_handler* target)
+{
+    connection_close((struct epoll_event_handler*) target);
+}
+
+
+void on_read(void* target, char* buffer, int len)
+{
+    connection_write((struct epoll_event_handler*) target, buffer, len);
+}
+
+
 struct epoll_event_handler* create_connection(int epoll_fd, int client_socket_fd)
 {
     
     make_socket_non_blocking(client_socket_fd);
 
     struct connection_closure* closure = malloc(sizeof(struct connection_closure));
+    closure->write_buffer = NULL;
+    closure->on_read = on_read;
+    closure->on_close = on_close;
 
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
     result->fd = client_socket_fd;
     result->handle = connection_handle_event;
     result->closure = closure;
 
-    closure->write_buffer = NULL;
 
     add_epoll_handler(epoll_fd, result, EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLOUT);
 
