@@ -43,6 +43,14 @@ void connection_really_close(struct epoll_event_handler* self)
 }
 
 
+void connection_on_close_event(struct epoll_event_handler* self)
+{
+    struct connection_closure* closure = (struct connection_closure*) self->closure;
+    closure->on_close(closure->on_close_closure);
+    connection_close(self);
+}
+
+
 void connection_on_out_event(struct epoll_event_handler* self)
 {
     struct connection_closure* closure = (struct connection_closure*) self->closure;
@@ -78,14 +86,6 @@ void connection_on_out_event(struct epoll_event_handler* self)
             free(temp);
         }
     }
-}
-
-
-void connection_on_close_event(struct epoll_event_handler* self)
-{
-    struct connection_closure* closure = (struct connection_closure*) self->closure;
-    closure->on_close(closure->on_close_closure);
-    connection_close(self);
 }
 
 
