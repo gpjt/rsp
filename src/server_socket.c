@@ -8,6 +8,7 @@
 
 #include "epollinterface.h"
 #include "connection.h"
+#include "logging.h"
 #include "netutils.h"
 #include "server_socket.h"
 
@@ -107,7 +108,7 @@ void handle_server_socket_event(struct epoll_event_handler* self, uint32_t event
             if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
                 break;
             } else {
-                perror("Could not accept");
+                rsp_log_error("Could not accept");
                 exit(1);
             }
         }

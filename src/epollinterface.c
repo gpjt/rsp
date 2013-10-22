@@ -4,6 +4,7 @@
 #include <sys/epoll.h>
 
 #include "epollinterface.h"
+#include "logging.h"
 
 
 void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32_t event_mask)
@@ -13,7 +14,7 @@ void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32
     event.data.ptr = handler;
     event.events = event_mask;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, handler->fd, &event) == -1) {
-        perror("Couldn't register server socket with epoll");
+        rsp_log_error("Couldn't register server socket with epoll");
         exit(-1);
     }
 }

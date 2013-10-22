@@ -10,6 +10,7 @@
 
 #include "epollinterface.h"
 #include "connection.h"
+#include "logging.h"
 #include "netutils.h"
 
 
@@ -72,7 +73,7 @@ void connection_on_out_event(struct epoll_event_handler* self)
                     return;
                 }
                 if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                    perror("Error writing to client");
+                    rsp_log_error("Error writing to client");
                     exit(-1);
                 }
                 written = 0;
@@ -157,7 +158,7 @@ void connection_write(struct epoll_event_handler* self, char* data, int len)
             return;
         }
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            perror("Error writing to client");
+            rsp_log_error("Error writing to client");
             exit(-1);
         }
         written = 0;

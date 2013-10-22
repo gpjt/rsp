@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
     int epoll_fd = epoll_create1(0);
     if (epoll_fd == -1) {
-        perror("Couldn't create epoll FD");
+        rsp_log_error("Couldn't create epoll FD");
         exit(1);
     }
 
