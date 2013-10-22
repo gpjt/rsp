@@ -42,9 +42,9 @@ int connect_to_backend(char* backend_host,
     getaddrinfo_error = getaddrinfo(backend_host, backend_port_str, &hints, &addrs);
     if (getaddrinfo_error != 0) {
         if (getaddrinfo_error == EAI_SYSTEM) {
-            fprintf(stderr, "Couldn't find backend: system error: %s\n", strerror(errno));
+            rsp_log_error("Couldn't find backend");
         } else {
-            fprintf(stderr, "Couldn't find backend: %s\n", gai_strerror(getaddrinfo_error));
+            rsp_log("Couldn't find backend: %s", gai_strerror(getaddrinfo_error));
         }
         exit(1);
     }
@@ -72,7 +72,7 @@ int connect_to_backend(char* backend_host,
     }
 
     if (addrs_iter == NULL) {
-        fprintf(stderr, "Couldn't connect to backend");
+        rsp_log("Couldn't connect to backend");
         exit(1);
     }
 

@@ -133,7 +133,7 @@ int create_and_bind(char* server_port_str)
     int getaddrinfo_error;
     getaddrinfo_error = getaddrinfo(NULL, server_port_str, &hints, &addrs);
     if (getaddrinfo_error != 0) {
-        fprintf(stderr, "Couldn't find local host details: %s\n", gai_strerror(getaddrinfo_error));
+        rsp_log("Couldn't find local host details: %s", gai_strerror(getaddrinfo_error));
         exit(1);
     }
 
@@ -163,7 +163,7 @@ int create_and_bind(char* server_port_str)
     }
 
     if (addr_iter == NULL) {
-        fprintf(stderr, "Couldn't bind\n");
+        rsp_log("Couldn't bind");
         exit(1);
     }
 

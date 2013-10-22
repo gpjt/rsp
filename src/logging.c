@@ -36,9 +36,5 @@ void rsp_log(char* format, ...)
 void rsp_log_error(char* message)
 {
     char* error = strerror(errno);
-
-    char* full_message = malloc(strlen(message) + 3 + strlen(error));
-    sprintf(full_message, "%s: %s", message, error);
-    rsp_log(full_message);
-    free(full_message);
+    rsp_log("%s: %s", message, error);
 }
