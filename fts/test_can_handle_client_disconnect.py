@@ -36,7 +36,7 @@ class TestCanHandleClientDisconnect(unittest.TestCase):
             sock.close()
 
             # Check it didn't crash
-            response = requests.get("http://127.0.0.1:8000")
+            response = requests.get("http://127.0.0.1:8000", timeout=10)
             self.assertEqual(response.status_code, 200)
         finally:
             server.kill(9)
