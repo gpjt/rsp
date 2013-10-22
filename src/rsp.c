@@ -6,6 +6,7 @@
 #include <lauxlib.h>
 
 #include "epollinterface.h"
+#include "logging.h"
 #include "server_socket.h"
 
 
@@ -48,7 +49,7 @@ int main(int argc, char* argv[])
                                  backend_addr,
                                  backend_port_str);
 
-    printf("Started.  Listening on port %s.\n", server_port_str);
+    rsp_log("Started.  Listening on port %s.\n", server_port_str);
     do_reactor_loop(epoll_fd);
 
     return 0;
