@@ -27,6 +27,8 @@ void rsp_log(char* format, ...)
     vfprintf(stdout, format, argptr);
     va_end(argptr);
 
+    fprintf(stdout, "\n");
+
     fflush(stdout);
 }
 
