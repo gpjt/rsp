@@ -38,3 +38,4 @@ void rsp_log_error(char* message)
     char* error = strerror(errno);
     rsp_log("%s: %s", message, error);
 }
+
