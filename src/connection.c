@@ -32,15 +32,15 @@ void connection_really_close(struct epoll_event_handler* self)
     while (closure->write_buffer != NULL) {
         next = closure->write_buffer->next;
         if (!closure->write_buffer->is_close_message) {
-            free(closure->write_buffer->data);
+            epoll_add_to_free_list(closure->write_buffer->data);
         }
-        free(closure->write_buffer);
+        epoll_add_to_free_list(closure->write_buffer);
         closure->write_buffer = next;
     }
 
     close(self->fd);
-    free(self->closure);
-    free(self);
+    epoll_add_to_free_list(self->closure);
+    epoll_add_to_free_list(self);
 }
 
 
@@ -84,8 +84,8 @@ void connection_on_out_event(struct epoll_event_handler* self)
         } else {
             temp = closure->write_buffer;
             closure->write_buffer = closure->write_buffer->next;
-            free(temp->data);
-            free(temp);
+            epoll_add_to_free_list(temp->data);
+            epoll_add_to_free_list(temp);
         }
     }
 }

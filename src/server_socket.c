@@ -42,7 +42,7 @@ void on_client_close(void* closure)
     connection_close(data->backend);
     data->client = NULL;
     data->backend = NULL;
-    free(closure);
+    epoll_add_to_free_list(closure);
 }
 
 
@@ -61,7 +61,7 @@ void on_backend_close(void* closure)
     connection_close(data->client);
     data->client = NULL;
     data->backend = NULL;
-    free(closure);
+    epoll_add_to_free_list(closure);
 }
 
 

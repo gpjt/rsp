@@ -8,4 +8,6 @@ extern void epoll_init();
 
 extern void epoll_add_handler(struct epoll_event_handler* handler, uint32_t event_mask);
 
+extern void epoll_add_to_free_list(void* block);
+
 extern void epoll_do_reactor_loop();
