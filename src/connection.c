@@ -194,7 +194,7 @@ void connection_close(struct epoll_event_handler* self)
 }
 
 
-struct epoll_event_handler* create_connection(int epoll_fd, int client_socket_fd)
+struct epoll_event_handler* create_connection(int client_socket_fd)
 {
     
     make_socket_non_blocking(client_socket_fd);
@@ -208,7 +208,7 @@ struct epoll_event_handler* create_connection(int epoll_fd, int client_socket_fd
     result->closure = closure;
 
 
-    add_epoll_handler(epoll_fd, result, EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLOUT);
+    epoll_add_handler(result, EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLOUT);
 
     return result;
 }

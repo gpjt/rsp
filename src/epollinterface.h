@@ -4,6 +4,8 @@ struct epoll_event_handler {
     void* closure;
 };
 
-extern void add_epoll_handler(int epoll_fd, struct epoll_event_handler* handler, uint32_t event_mask);
+extern void epoll_init();
 
-extern void do_reactor_loop(int epoll_fd);
+extern void epoll_add_handler(struct epoll_event_handler* handler, uint32_t event_mask);
+
+extern void epoll_do_reactor_loop();

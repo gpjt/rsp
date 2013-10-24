@@ -38,19 +38,14 @@ int main(int argc, char* argv[])
     char* backend_addr = get_config_opt(L, "backendAddress");
     char* backend_port_str = get_config_opt(L, "backendPort");
 
-    int epoll_fd = epoll_create1(0);
-    if (epoll_fd == -1) {
-        rsp_log_error("Couldn't create epoll FD");
-        exit(1);
-    }
+    epoll_init();
 
-    create_server_socket_handler(epoll_fd, 
-                                 server_port_str,
+    create_server_socket_handler(server_port_str,
                                  backend_addr,
                                  backend_port_str);
 
     rsp_log("Started.  Listening on port %s.", server_port_str);
-    do_reactor_loop(epoll_fd);
+    epoll_do_reactor_loop();
 
     return 0;
 }

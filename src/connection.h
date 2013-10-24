@@ -12,4 +12,4 @@ extern void connection_write(struct epoll_event_handler* self, char* data, int l
 
 extern void connection_close(struct epoll_event_handler* self);
 
-extern struct epoll_event_handler* create_connection(int epoll_fd, int connection_fd);
+extern struct epoll_event_handler* create_connection(int connection_fd);
