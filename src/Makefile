@@ -16,7 +16,7 @@ clean:
 	rm -f rsp
 
 %.o: %.c $(HEADER_FILES)
-	$(CC) -c -Wall -std=gnu99 $(INCLUDE_DIRS) $<
+	$(CC) -c -Wall -g -std=gnu99 $(INCLUDE_DIRS) $<
 
 rsp: $(OBJ_FILES) 
 	$(CC) -o $@ $(OBJ_FILES) $(LDFLAGS) $(LIBS)
