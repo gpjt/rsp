@@ -38,6 +38,7 @@ void connection_really_close(struct epoll_event_handler* self)
         closure->write_buffer = next;
     }
 
+    epoll_remove_handler(self);
     close(self->fd);
     epoll_add_to_free_list(self->closure);
     epoll_add_to_free_list(self);
@@ -47,7 +48,9 @@ void connection_really_close(struct epoll_event_handler* self)
 void connection_on_close_event(struct epoll_event_handler* self)
 {
     struct connection_closure* closure = (struct connection_closure*) self->closure;
-    closure->on_close(closure->on_close_closure);
+    if (closure->on_close != NULL) {
+        closure->on_close(closure->on_close_closure);
+    }
     connection_close(self);
 }
 
@@ -107,7 +110,9 @@ void connection_on_in_event(struct epoll_event_handler* self)
             return;
         }
 
-        closure->on_read(closure->on_read_closure, read_buffer, bytes_read);
+        if (closure->on_read != NULL) {
+            closure->on_read(closure->on_read_closure, read_buffer, bytes_read);
+        }
     }
 }
 
@@ -182,6 +187,8 @@ void connection_write(struct epoll_event_handler* self, char* data, int len)
 void connection_close(struct epoll_event_handler* self)
 {
     struct connection_closure* closure = (struct connection_closure* ) self->closure;
+    closure->on_read = NULL;
+    closure->on_close = NULL;
     if (closure->write_buffer == NULL) {
         connection_really_close(self);
     } else {
