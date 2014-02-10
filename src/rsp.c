@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/epoll.h>
+#include <signal.h>
 
 #include <luajit.h>
 #include <lauxlib.h>
@@ -37,6 +38,8 @@ int main(int argc, char* argv[])
     char* server_port_str = get_config_opt(L, "listenPort");
     char* backend_addr = get_config_opt(L, "backendAddress");
     char* backend_port_str = get_config_opt(L, "backendPort");
+
+    signal(SIGPIPE, SIG_IGN);
 
     epoll_init();
 
