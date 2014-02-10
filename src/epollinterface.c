@@ -35,7 +35,6 @@ void epoll_add_handler(struct epoll_event_handler* handler, uint32_t event_mask)
 
 void epoll_remove_handler(struct epoll_event_handler* handler)
 {
-    rsp_log("epoll_remove_handler for %p", handler);
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, handler->fd, NULL);
 }
 
