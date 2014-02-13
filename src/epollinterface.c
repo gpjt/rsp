@@ -24,6 +24,7 @@ void epoll_add_handler(struct epoll_event_handler* handler, uint32_t event_mask)
 {
     struct epoll_event event;
 
+    memset(&event, 0, sizeof(struct epoll_event));
     event.data.ptr = handler;
     event.events = event_mask;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, handler->fd, &event) == -1) {
