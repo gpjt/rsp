@@ -78,10 +78,12 @@ void handle_client_connection(int client_socket_fd,
                               char* backend_port_str) 
 {
     struct epoll_event_handler* client_connection;
+    rsp_log("Creating connection object for incoming connection...");
     client_connection = create_connection(client_socket_fd);
 
     int backend_socket_fd = connect_to_backend(backend_host, backend_port_str);
     struct epoll_event_handler* backend_connection;
+    rsp_log("Creating connection object for backend connection...");
     backend_connection = create_connection(backend_socket_fd);
 
     struct proxy_data* proxy = malloc(sizeof(struct proxy_data));

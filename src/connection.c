@@ -42,6 +42,7 @@ void connection_really_close(struct epoll_event_handler* self)
     close(self->fd);
     epoll_add_to_free_list(self->closure);
     epoll_add_to_free_list(self);
+    rsp_log("Freed connection %p", self);
 }
 
 
@@ -203,13 +204,13 @@ void connection_close(struct epoll_event_handler* self)
 
 struct epoll_event_handler* create_connection(int client_socket_fd)
 {
-    
     make_socket_non_blocking(client_socket_fd);
 
     struct connection_closure* closure = malloc(sizeof(struct connection_closure));
     closure->write_buffer = NULL;
 
     struct epoll_event_handler* result = malloc(sizeof(struct epoll_event_handler));
+    rsp_log("Created connection epoll handler %p", result);
     result->fd = client_socket_fd;
     result->handle = connection_handle_event;
     result->closure = closure;
